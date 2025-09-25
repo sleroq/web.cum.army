@@ -894,33 +894,9 @@
             vm.playerMessage = null;
           });
 
-          this.player.on('hlsPrepared', function (hls) {
-            hls.on(Hls.Events.FRAG_PARSING_METADATA, function (data, meta) {
-              console.log(data, meta);
-              if (meta && meta.samples) {
-                meta.samples.forEach(function (sample) {
-                  console.log(new TextDecoder("utf-8").decode(sample.data))
-                })
-              }
-
-            });
-          });
-
-          this.player.on('metaData', function (metadata) {
-
-            console.log('MetaData', metadata);
-
-            if (metadata.type === 'sei' && metadata.registered) {
-              // Parse BASE64 encoded JSON data
-              const base64String = toAsciiString(metadata.userdata);
-              console.log(base64String);
-            }
-          });
-
           if (this.demoOption.autoReload && this.demoOption.autoReloadInterval > 0) {
 
             this.player.once('error', function (e) {
-
               console.log(e);
 
               if (this.reloadTimer) {
