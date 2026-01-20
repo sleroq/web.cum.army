@@ -53,15 +53,15 @@ const AvailableStreams = () => {
       <div className="m-2"/>
 
       <div className='flex flex-col'>
-        {streams.map((e, i) => (
-          <button
-            key={i + '_' + e.streamKey}
-            className={`mt-2 py-2 px-4 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75`}
-            onClick={() => onWatchStreamClick(e.streamKey)}>
-            {e.streamKey}
-          </button>
-        ))
-        }
+			{streams.map((e, i) => (
+				<button
+					key={i + '_' + e.streamKey}
+					className={`mt-2 py-2 px-4 bg-brand text-white font-semibold rounded-lg shadow-md hover:bg-brand-hover focus:outline-hidden focus:ring-2 focus:ring-brand/50`}
+					onClick={() => onWatchStreamClick(e.streamKey)}>
+					{e.streamKey}
+				</button>
+			))
+			}
       </div>
     </div>
   )

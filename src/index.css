@@ -1,6 +1,36 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
 @import 'tailwindcss';
 
+/*
+  App theme tokens (Tailwind v4 `@theme`).
+  Inspired by `public/index.html`.
+
+  Update these values to re-theme the app globally.
+*/
+@theme {
+	--color-background: #121212;
+	--color-surface: #1e1e1e;
+	--color-input: #2d2d2d;
+	--color-border: #404040;
+
+	--color-foreground: #ffffff;
+	--color-muted: #cccccc;
+
+	--color-brand: #ec3b73;
+	--color-brand-hover: #ff69a0;
+}
+
+@layer base {
+	html {
+		color-scheme: dark;
+	}
+
+	/* Avoid browser-default blue accents for form controls */
+	body {
+		accent-color: var(--color-brand);
+	}
+}
+
 @layer base {
 	body {
 		margin: 0;

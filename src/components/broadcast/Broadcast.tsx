@@ -256,12 +256,12 @@ function BrowserBroadcaster() {
 			<div className="flex flex-row gap-2">
 				<button
 					onClick={() => setUseDisplayMedia("Screen")}
-					className="appearance-none border w-full mt-5 py-2 px-3 leading-tight focus:outline-hidden focus:shadow-outline bg-blue-900 hover:bg-blue-800 border-gray-700 text-white rounded-sm shadow-md placeholder-gray-200">
+					className="appearance-none border w-full mt-5 py-2 px-3 leading-tight focus:outline-hidden focus:shadow-outline bg-brand hover:bg-brand-hover border-gray-700 text-white rounded-sm shadow-md placeholder-gray-200">
 					Publish Screen/Window/Tab
 				</button>
 				<button
 					onClick={() => setUseDisplayMedia("Webcam")}
-					className="appearance-none border w-full mt-5 py-2 px-3 leading-tight focus:outline-hidden focus:shadow-outline bg-blue-900 hover:bg-blue-800 border-gray-700 text-white rounded-sm shadow-md placeholder-gray-200">
+					className="appearance-none border w-full mt-5 py-2 px-3 leading-tight focus:outline-hidden focus:shadow-outline bg-brand hover:bg-brand-hover border-gray-700 text-white rounded-sm shadow-md placeholder-gray-200">
 					Publish Webcam
 				</button>
 			</div>

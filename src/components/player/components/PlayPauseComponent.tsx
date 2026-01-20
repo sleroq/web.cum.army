@@ -17,7 +17,7 @@ const PlayPauseComponent = (props: PlayPauseComponentProps) => {
 			return;
 		}
 
-		const canPlayHandler = (_: Event) => props.videoRef.current?.play()
+		const canPlayHandler = (_: Event) => props.videoRef.current?.play().catch((err) => console.error("VideoError", err))
 		const playingHandler = (_: Event) => setIsPaused(() => false)
 		const pauseHandler = (_: Event) => setIsPaused(() => true);
 
@@ -44,7 +44,7 @@ const PlayPauseComponent = (props: PlayPauseComponentProps) => {
 	}, [isPaused]);
 
 	if (isPaused) {
-		return <PlayIcon onClick={() => props.videoRef.current?.play()}/>
+		return <PlayIcon onClick={() => props.videoRef.current?.play().catch((err) => console.error("VideoError", err))}/>
 	}
 	if (!isPaused) {
 		return <PauseIcon onClick={() => props.videoRef.current?.pause()}/>
