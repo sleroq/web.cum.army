@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import Player from './Player';
-import { useNavigate } from 'react-router-dom';
 import ModalTextInput from '../shared/ModalTextInput';
 
 const PlayerPage = () => {
