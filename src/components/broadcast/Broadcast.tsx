@@ -1,4 +1,4 @@
-﻿import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import PlayerHeader from '../playerHeader/PlayerHeader';
@@ -41,10 +41,17 @@ function BrowserBroadcaster() {
   const [publishSuccess, setPublishSuccess] = useState(false);
   const [useDisplayMedia, setUseDisplayMedia] = useState<'Screen' | 'Webcam' | 'None'>('None');
   const [peerConnectionDisconnected, setPeerConnectionDisconnected] = useState(false);
-  const [currentViewersCount, setCurrentViewersCount] = useState<number>(0);
   const [hasPacketLoss, setHasPacketLoss] = useState<boolean>(false);
   const [hasSignal, setHasSignal] = useState<boolean>(false);
   const [connectFailed, setConnectFailed] = useState<boolean>(false);
+
+  const currentViewersCount = useMemo(() => {
+    if (!streamKey || !streamStatus) {
+      return 0;
+    }
+    const sessions = streamStatus.filter((session) => session.streamKey === streamKey);
+    return sessions.length !== 0 ? sessions[0].whepSessions.length : 0;
+  }, [streamKey, streamStatus]);
 
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -63,17 +70,7 @@ function BrowserBroadcaster() {
     return () => peerConnectionRef.current?.close();
   }, []);
 
-  useEffect(() => {
-    if (!streamKey || !streamStatus) {
-      return;
-    }
 
-    const sessions = streamStatus.filter((session) => session.streamKey === streamKey);
-
-    if (sessions.length !== 0) {
-      setCurrentViewersCount(() => (sessions.length !== 0 ? sessions[0].whepSessions.length : 0));
-    }
-  }, [streamStatus]);
 
   useEffect(() => {
     if (useDisplayMedia === 'None' || !peerConnectionRef.current) {
@@ -83,8 +80,10 @@ function BrowserBroadcaster() {
     let stream: MediaStream | undefined = undefined;
 
     if (!navigator.mediaDevices) {
-      setMediaAccessError(() => ErrorMessageEnum.NoMediaDevices);
-      setUseDisplayMedia(() => 'None');
+      Promise.resolve().then(() => {
+        setMediaAccessError(() => ErrorMessageEnum.NoMediaDevices);
+        setUseDisplayMedia(() => 'None');
+      });
       return;
     }
 
@@ -191,7 +190,7 @@ function BrowserBroadcaster() {
         stream.getTracks().forEach((streamTrack: MediaStreamTrack) => streamTrack.stop());
       }
     };
-  }, [videoRef, useDisplayMedia, location.pathname]);
+  }, [videoRef, useDisplayMedia, location.pathname, apiPath, connectFailed, streamKey]);
 
   useEffect(() => {
     hasSignalRef.current = hasSignal;

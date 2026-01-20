@@ -172,18 +172,29 @@ const Player = (props: PlayerProps) => {
         return true;
       }
 
-      setTimeout(() => {
-        const el = videoRef.current;
-        if (!el) {
-          return;
-        }
-        el.muted = false;
-        debugAutoplay('tryAutoplay:unmute:attempt', describeVideoEl(el));
-        el.play().catch(() => {
-          el.muted = true;
-          debugAutoplay('tryAutoplay:unmute:rejected', describeVideoEl(el));
-        });
-      }, 0);
+		setTimeout(() => {
+			const el = videoRef.current;
+			if (!el) {
+				return;
+			}
+			// Best-effort unmute attempt, but do NOT call play() unmuted here.
+			// Some Chromium builds will pause the element when unmuted playback is blocked.
+			el.muted = false;
+			debugAutoplay('tryAutoplay:unmute:attempt', describeVideoEl(el));
+
+			window.setTimeout(() => {
+				const current = videoRef.current;
+				if (!current) {
+					return;
+				}
+				if (!current.paused) {
+					return;
+				}
+				debugAutoplay('tryAutoplay:unmute:paused-recover', describeVideoEl(current));
+				current.muted = true;
+				current.play().catch((err) => warnAutoplay('tryAutoplay:recover:failed', errInfo(err), describeVideoEl(current)));
+			}, 150);
+		}, 0);
 
       return true;
     } catch (err) {
