@@ -8,41 +8,52 @@
   Update these values to re-theme the app globally.
 */
 @theme {
-	--color-background: #121212;
-	--color-surface: #1e1e1e;
-	--color-input: #2d2d2d;
-	--color-border: #404040;
+  --color-background: #121212;
+  --color-surface: #1e1e1e;
+  --color-input: #2d2d2d;
+  --color-border: #404040;
 
-	--color-foreground: #ffffff;
-	--color-muted: #cccccc;
+  --color-foreground: #ffffff;
+  --color-muted: #cccccc;
 
-	--color-brand: #ec3b73;
-	--color-brand-hover: #ff69a0;
+  --color-brand: #ec3b73;
+  --color-brand-hover: #ff69a0;
 }
 
 @layer base {
-	html {
-		color-scheme: dark;
-	}
+  html {
+    color-scheme: dark;
+  }
 
-	/* Avoid browser-default blue accents for form controls */
-	body {
-		accent-color: var(--color-brand);
-	}
+  /* Avoid browser-default blue accents for form controls */
+  body {
+    accent-color: var(--color-brand);
+  }
 }
 
 @layer base {
-	body {
-		margin: 0;
-		font-family: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Oxygen',
-			'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-		-webkit-font-smoothing: antialiased;
-		-moz-osx-font-smoothing: grayscale;
-	}
+  body {
+    margin: 0;
+    font-family:
+      'Roboto',
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      'Oxygen',
+      'Ubuntu',
+      'Cantarell',
+      'Fira Sans',
+      'Droid Sans',
+      'Helvetica Neue',
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-	code {
-		font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
-	}
+  code {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+  }
 }
 
 /*
@@ -54,11 +65,11 @@
   color utility to any element that depends on these defaults.
 */
 @layer base {
-	*,
-	::after,
-	::before,
-	::backdrop,
-	::file-selector-button {
-		border-color: var(--color-gray-200, currentColor);
-	}
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
 }

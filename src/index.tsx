@@ -1,25 +1,25 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import './index.css'
-import App from './App'
-import {BrowserRouter} from "react-router-dom";
-import {StatusProvider} from "./providers/StatusProvider";
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.css';
+import App from './App';
+import { BrowserRouter } from 'react-router-dom';
+import { StatusProvider } from './providers/StatusProvider';
 
 const rootElement = document.getElementById('root');
 
 if (!rootElement) {
-	throw new Error('Root element #root not found');
+  throw new Error('Root element #root not found');
 }
 
-const root = ReactDOM.createRoot(rootElement)
+const root = ReactDOM.createRoot(rootElement);
 const path = import.meta.env.PUBLIC_URL;
 
 root.render(
-	<React.StrictMode>
-		<BrowserRouter basename={path}>
-			<StatusProvider>
-				<App/>
-			</StatusProvider>
-		</BrowserRouter>
-	</React.StrictMode>
-)
+  <React.StrictMode>
+    <BrowserRouter basename={path}>
+      <StatusProvider>
+        <App />
+      </StatusProvider>
+    </BrowserRouter>
+  </React.StrictMode>
+);
