@@ -13,7 +13,6 @@ export default defineConfig({
   server: {
     open: true, // Opens browser on dev server start
   },
-  // envDir: '../',
   // For backwards compatibility
   envPrefix: ["REACT_", "VITE_"],
 });
