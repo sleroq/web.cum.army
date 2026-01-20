@@ -6,14 +6,12 @@ buildNpmPackage {
   pname = "web-cum-army";
   version = "0.1.0";
 
-  # Build from source (Vite outputs to ./build via vite.config.mjs)
   src = lib.cleanSourceWith {
     src = ./.;
     filter = path: type:
       let
         name = builtins.baseNameOf path;
       in
-      # Avoid bundling local artifacts into the Nix source.
       !(builtins.elem name [ "node_modules" "build" ]);
   };
 
