@@ -44,7 +44,7 @@ export const useVideoAutoplay = (
         retryCountRef.current = 0;
         return true;
       }
-    } catch (err) {
+    } catch {
       // If we prefer sound and this is our first attempt, try muted
       if (preferSound && retryCountRef.current === 0) {
         retryCountRef.current++;
@@ -72,7 +72,26 @@ export const useVideoAutoplay = (
         const delay = retryDelays[retryCountRef.current];
         currentRetryTimeoutRef.current = window.setTimeout(() => {
           retryCountRef.current++;
-          attemptPlay();
+          // Call the actual function recursively
+          (async () => {
+            const video = videoRef.current;
+            if (!video) return;
+
+            try {
+              video.muted = !preferSound;
+              await video.play();
+              await new Promise((resolve) => setTimeout(resolve, 100));
+
+              if (!video.paused) {
+                setShowPlayButton(false);
+                retryCountRef.current = 0;
+              }
+            } catch {
+              if (retryCountRef.current >= maxRetries - 1) {
+                setShowPlayButton(true);
+              }
+            }
+          })();
         }, delay);
       }
 

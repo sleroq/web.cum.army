@@ -72,9 +72,11 @@ const Player = (props: PlayerProps) => {
     clickTimeoutRef.current = setTimeout(() => {
       const timeSinceLastClick = Date.now() - lastClickTimeRef.current;
       if (timeSinceLastClick >= clickDelay && timeSinceLastClick - clickDelay < 5000) {
-        videoRef.current?.paused
-          ? videoRef.current?.play().catch((err) => console.error('VideoError', err))
-          : videoRef.current?.pause();
+        if (videoRef.current?.paused) {
+          videoRef.current.play().catch((err) => console.error('VideoError', err));
+        } else {
+          videoRef.current?.pause();
+        }
       }
     }, clickDelay);
   };
@@ -104,11 +106,15 @@ const Player = (props: PlayerProps) => {
 
     peerConnectionRef.current = new RTCPeerConnection();
 
+    const videoEl = videoRef.current;
+
     return () => {
       peerConnectionRef.current?.close();
       peerConnectionRef.current = null;
 
-      videoRef.current?.removeEventListener('playing', setHasSignalHandler);
+      if (videoEl) {
+        videoEl.removeEventListener('playing', setHasSignalHandler);
+      }
 
       player?.removeEventListener('mouseenter', () => handleOverlayTimer);
       player?.removeEventListener('mouseleave', () => handleOverlayTimer);

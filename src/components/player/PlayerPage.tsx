@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import ModalTextInput from '../shared/ModalTextInput';
 
 const PlayerPage = () => {
-  const navigate = useNavigate();
   const [streamKeys, setStreamKeys] = useState<string[]>([window.location.pathname.substring(1)]);
   const [isModalOpen, setIsModelOpen] = useState<boolean>(false);
 
