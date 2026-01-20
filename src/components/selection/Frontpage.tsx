@@ -24,8 +24,17 @@ const Frontpage = () => {
 	return (
 		<div className='space-y-4 mx-auto max-w-2xl pt-20 md:pt-24'>
 			<div className='rounded-md bg-gray-800 shadow-md p-8'>
-				<h2 className="font-light leading-tight text-4xl mt-0 mb-2">Welcome to Broadcast Box</h2>
-				<p>Broadcast Box is a tool that allows you to efficiently stream high-quality video in real time, using the latest in video codecs and WebRTC technology.</p>
+				<div className="flex items-center gap-3 mb-2">
+					<img
+						src="/assets/images/icon.png"
+						alt="Web Cum Streaming"
+						width={32}
+						height={32}
+						className="rounded"
+					/>
+					<h2 className="font-light leading-tight text-4xl mt-0">Welcome to Web Cum Streaming</h2>
+				</div>
+				<p>Web Cum Streaming lets you stream and watch low-latency video in real time using WebRTC.</p>
 
 				<div className="flex rounded-md shadow-xs justify-center mt-6" role="group">
 
