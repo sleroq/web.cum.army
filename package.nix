@@ -19,7 +19,6 @@ buildNpmPackage {
 
   npmBuildScript = "build";
 
-  # Environment variables for the build
   VITE_SITE_TITLE = siteTitle;
   VITE_API_PATH = apiPath;
 
