@@ -1,3 +1,61 @@
-# web.cum.army player
+# Broadcast Box Player (Fork)
 
-![screenshot](https://share.cum.army/u/XzJhAD.png)
+This is a fork of the web player for [broadcast-box](https://github.com/glimesh/broadcast-box). It is designed to be a more modern, consistent, and feature-rich alternative to the original player.
+
+## Features unique to this fork
+
+- **Theme Support**: Includes multiple built-in themes (Dark, Light, Ocean, Forest) and supports custom theme configuration.
+- **System Theme Sync**: Automatically follows your device's light/dark mode preferences.
+- **Improved Player UI**: A cleaner, more modern interface built with Tailwind CSS v4.
+- **Performance Indicators**: Real-time display of FPS, latency, and dropped frames directly in the player.
+- **Consistent Design**: Unified UI components across the entire application.
+- **Stream Auto-play**: Streams attempt to play automatically by default, with smart retry logic and muted fallback if needed.
+- **Modern Tech Stack**: Updated to React 19, Vite 7, and Tailwind CSS v4. Includes React Compiler for better performance and strict linting/formatting rules.
+- **Simplified Experience**: Removed unnecessary features like cinema mode to keep the focus on the content.
+
+## General Features
+
+- **WebRTC (WHEP) Playback**: Low-latency streaming using the WHEP protocol.
+- **Quality Selection**: Support for multiple video layers/qualities when provided by the broadcast-box server.
+- **Picture-in-Picture**: Watch streams in a floating window while browsing other tabs.
+- **Fullscreen Support**: Native fullscreen mode for an immersive viewing experience.
+- **Volume Control**: Granular volume adjustment and one-click mute.
+- **Viewer Count**: Real-time indicator of how many people are watching the stream.
+- **Responsive Design**: Works across desktops, tablets, and mobile devices.
+
+## Development
+
+### Prerequisites
+
+- Node.js (v20 or newer recommended)
+- npm
+
+### Getting Started
+
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Create a `.env` file based on `.env.example` and configure your `VITE_API_PATH`.
+4. Start the development server:
+   ```bash
+   npm start
+   ```
+
+### Building for Production
+
+To create a production build in the `build/` directory:
+
+```bash
+npm run build
+```
+
+### Code Quality
+
+- **Linting**: `npm run lint` (Strict ESLint rules including React Compiler checks)
+- **Formatting**: `npm run format` (Prettier)
+
+## License
+
+This project is licensed under the same terms as the original broadcast-box project.
