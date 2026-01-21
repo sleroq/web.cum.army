@@ -24,6 +24,7 @@ buildNpmPackage {
 
     mkdir -p "$out"
     cp -R build/* "$out"/
+    cp -R assets "$out"/
 
     runHook postInstall
   '';
