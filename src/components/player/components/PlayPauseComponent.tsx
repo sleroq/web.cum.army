@@ -1,36 +1,31 @@
-import React, { useEffect, useState } from 'react';
+import React, { useSyncExternalStore } from 'react';
 import { PauseIcon, PlayIcon } from '@heroicons/react/16/solid';
 
 interface PlayPauseComponentProps {
   videoRef: React.RefObject<HTMLVideoElement | null>;
 }
 
-const PlayPauseComponent = (props: PlayPauseComponentProps) => {
-  const [isPaused, setIsPaused] = useState<boolean>(true);
+const PlayPauseComponent = ({ videoRef }: PlayPauseComponentProps) => {
+  const isPaused = useSyncExternalStore(
+    (callback) => {
+      const video = videoRef.current;
+      if (!video) return () => {};
 
-  useEffect(() => {
-    const video = props.videoRef.current;
-    if (!video) {
-      return;
-    }
+      video.addEventListener('playing', callback);
+      video.addEventListener('pause', callback);
+      video.addEventListener('play', callback);
 
-    const playingHandler = () => setIsPaused(false);
-    const pauseHandler = () => setIsPaused(true);
-
-    video.addEventListener('playing', playingHandler);
-    video.addEventListener('pause', pauseHandler);
-
-    // Sync initial state
-    setIsPaused(video.paused);
-
-    return () => {
-      video.removeEventListener('playing', playingHandler);
-      video.removeEventListener('pause', pauseHandler);
-    };
-  }, [props.videoRef]);
+      return () => {
+        video.removeEventListener('playing', callback);
+        video.removeEventListener('pause', callback);
+        video.removeEventListener('play', callback);
+      };
+    },
+    () => videoRef.current?.paused ?? true
+  );
 
   const togglePlay = () => {
-    const video = props.videoRef.current;
+    const video = videoRef.current;
     if (!video) return;
     if (video.paused) {
       video.play().catch((err) => console.error('VideoError', err));

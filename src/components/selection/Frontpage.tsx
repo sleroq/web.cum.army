@@ -1,23 +1,23 @@
-import React, { createRef, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AvailableStreams from './AvailableStreams';
 
 const Frontpage = () => {
   const [streamType, setStreamType] = useState<'Watch' | 'Share'>('Watch');
-  const streamKey = createRef<HTMLInputElement>();
+  const [streamKey, setStreamKey] = useState('');
   const navigate = useNavigate();
 
   const onStreamClick = () => {
-    if (!streamKey.current || streamKey.current?.value === '') {
+    if (streamKey === '') {
       return;
     }
 
     if (streamType === 'Share') {
-      navigate(`/publish/${streamKey.current.value}`);
+      navigate(`/publish/${streamKey}`);
     }
 
     if (streamType === 'Watch') {
-      navigate(`/${streamKey.current.value}`);
+      navigate(`/${streamKey}`);
     }
   };
 
@@ -103,13 +103,14 @@ const Frontpage = () => {
                 onStreamClick();
               }
             }}
-            ref={streamKey}
+            value={streamKey}
+            onChange={(e) => setStreamKey(e.target.value)}
             autoFocus
           />
 
           <button
-            className={`py-2 px-4 ${streamKey.current?.value.length === 0 ? 'bg-gray-700' : 'bg-brand'} text-white font-semibold rounded-lg shadow-md ${streamKey.current?.value.length === 0 ? 'hover:bg-gray-600' : 'hover:bg-brand-hover'} focus:outline-hidden focus:ring-2 focus:ring-brand/50`}
-            disabled={streamKey.current?.value.length === 0}
+            className={`py-2 px-4 ${streamKey.length === 0 ? 'bg-gray-700' : 'bg-brand'} text-white font-semibold rounded-lg shadow-md ${streamKey.length === 0 ? 'hover:bg-gray-600' : 'hover:bg-brand-hover'} focus:outline-hidden focus:ring-2 focus:ring-brand/50`}
+            disabled={streamKey.length === 0}
             type="button"
             onClick={onStreamClick}
           >

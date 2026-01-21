@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { SpeakerWaveIcon, SpeakerXMarkIcon } from '@heroicons/react/16/solid';
 
 interface VolumeComponentProps {
@@ -7,24 +7,23 @@ interface VolumeComponentProps {
   onVolumeChanged: (value: number) => void;
 }
 
-const VolumeComponent = (props: VolumeComponentProps) => {
-  const [isMuted, setIsMuted] = useState<boolean>(props.isMuted);
+const VolumeComponent = ({ isMuted: propIsMuted, onStateChanged, onVolumeChanged }: VolumeComponentProps) => {
+  const [isMuted, setIsMuted] = useState<boolean>(propIsMuted);
   const [showSlider, setShowSlider] = useState<boolean>(false);
-  const volumeRef = useRef<number>(20);
 
   useEffect(() => {
-    props.onStateChanged(isMuted);
-  }, [isMuted]);
+    onStateChanged(isMuted);
+  }, [isMuted, onStateChanged]);
 
   const onVolumeChange = (newValue: number) => {
     if (isMuted && newValue !== 0) {
-      setIsMuted((_) => false);
+      setIsMuted(false);
     }
     if (!isMuted && newValue === 0) {
-      setIsMuted((_) => true);
+      setIsMuted(true);
     }
 
-    props.onVolumeChanged(newValue / 100);
+    onVolumeChanged(newValue / 100);
   };
 
   return (
@@ -39,7 +38,7 @@ const VolumeComponent = (props: VolumeComponentProps) => {
         id="default-range"
         type="range"
         max={100}
-        defaultValue={volumeRef.current}
+        defaultValue={20}
         onChange={(event) => onVolumeChange(parseInt(event.target.value))}
         className={`
 					${

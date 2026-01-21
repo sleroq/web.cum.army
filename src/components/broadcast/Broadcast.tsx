@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import PlayerHeader from '../playerHeader/PlayerHeader';
-import { StatusContext } from '../../providers/StatusProvider';
+import { StatusContext } from '../../providers/StatusContext';
 import { UsersIcon } from '@heroicons/react/20/solid';
 
 const mediaOptions = {

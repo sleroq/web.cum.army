@@ -1,5 +1,5 @@
-﻿import React, { useContext, useEffect } from 'react';
-import { StatusContext } from '../../providers/StatusProvider';
+import React, { useContext, useEffect } from 'react';
+import { StatusContext } from '../../providers/StatusContext';
 import { useNavigate } from 'react-router-dom';
 
 const Statistics = () => {
@@ -8,7 +8,7 @@ const Statistics = () => {
 
   useEffect(() => {
     refreshStatus();
-  }, []);
+  }, [refreshStatus]);
 
   return (
     <div className="p-6 min-h-screen">

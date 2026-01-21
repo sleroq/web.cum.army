@@ -1,24 +1,5 @@
-﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
-
-interface WhepSession {
-  id: string;
-  currentLayer: string;
-  sequenceNumber: number;
-  timestamp: number;
-  packetsWritten: number;
-}
-
-interface StatusResult {
-  streamKey: string;
-  whepSessions: WhepSession[];
-  videoStreams: VideoStream[];
-}
-
-interface VideoStream {
-  rid: string;
-  packetsReceived: number;
-  lastKeyFrameSeen: string;
-}
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { StatusContext, StatusResult, StatusProviderContextProps } from './StatusContext';
 
 interface StatusProviderProps {
   children: React.ReactNode;
@@ -57,43 +38,33 @@ const fetchStatus = (
     .then((result: StatusResult[]) => onSuccess?.(result))
     .catch((err: FetchError) => onError?.(err));
 
-interface StatusProviderContextProps {
-  streamStatus: StatusResult[] | undefined;
-  refreshStatus: () => void;
-}
-
-export const StatusContext = React.createContext<StatusProviderContextProps>({
-  streamStatus: undefined,
-  refreshStatus: () => {},
-});
-
 export function StatusProvider(props: StatusProviderProps) {
   const [isStatusActive, setIsStatusActive] = useState<boolean>(false);
   const [streamStatus, setStreamStatus] = useState<StatusResult[] | undefined>(undefined);
   const intervalCountRef = useRef<number>(5000);
 
   const fetchStatusResultHandler = (result: StatusResult[]) => {
-    setStreamStatus((_) => result);
+    setStreamStatus(result);
   };
   const fetchStatusErrorHandler = (error: FetchError) => {
     console.error('StatusProviderError', error.status, error.message);
 
     if (error.status === 503) {
-      setIsStatusActive(() => false);
-      setStreamStatus(() => undefined);
+      setIsStatusActive(false);
+      setStreamStatus(undefined);
     }
   };
 
   useEffect(() => {
     fetchStatus(
       (result) => {
-        setStreamStatus((_) => result);
-        setIsStatusActive((_) => true);
+        setStreamStatus(result);
+        setIsStatusActive(true);
       },
       (error) => {
         if (error.status === 503) {
-          setIsStatusActive(() => false);
-          setStreamStatus(() => undefined);
+          setIsStatusActive(false);
+          setStreamStatus(undefined);
         }
 
         console.error('StatusProviderError', error.status, error.message);

@@ -1,31 +1,27 @@
-﻿import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useMemo } from 'react';
 import { UsersIcon } from '@heroicons/react/20/solid';
-import { StatusContext } from '../../../providers/StatusProvider';
+import { StatusContext } from '../../../providers/StatusContext';
 
 interface CurrentViewersComponentProps {
   streamKey: string;
 }
 
-const CurrentViewersComponent = (props: CurrentViewersComponentProps) => {
-  const { streamKey } = props;
+const CurrentViewersComponent = ({ streamKey }: CurrentViewersComponentProps) => {
   const { streamStatus, refreshStatus } = useContext(StatusContext);
-  const [currentViewersCount, setCurrentViewersCount] = useState<number>(0);
 
   useEffect(() => {
     refreshStatus();
-  }, []);
+  }, [refreshStatus]);
 
-  useEffect(() => {
+  const currentViewersCount = useMemo(() => {
     if (!streamKey || !streamStatus) {
-      return;
+      return 0;
     }
 
     const sessions = streamStatus.filter((session) => session.streamKey === streamKey);
 
-    if (sessions.length !== 0) {
-      setCurrentViewersCount(() => (sessions.length !== 0 ? sessions[0].whepSessions.length : 0));
-    }
-  }, [streamStatus]);
+    return sessions.length !== 0 ? sessions[0].whepSessions.length : 0;
+  }, [streamKey, streamStatus]);
 
   return (
     <div className={'flex flex-row items-center gap-1'}>

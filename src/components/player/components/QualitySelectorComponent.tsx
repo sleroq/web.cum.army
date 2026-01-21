@@ -1,4 +1,4 @@
-﻿import React, { ChangeEvent, useState } from 'react';
+import React, { ChangeEvent, useState } from 'react';
 import { ChartBarIcon } from '@heroicons/react/16/solid';
 
 interface QualityComponentProps {
@@ -23,20 +23,22 @@ const QualitySelectorComponent = (props: QualityComponentProps) => {
     setCurrentLayer(event.target.value);
   };
 
-  let layerList = [currentLayer, ...props.layers.filter((layer) => layer !== currentLayer)].map(
-    (layer) => (
-      <option key={`layerEncodingId_${layer}`} value={layer}>
-        {layer}
-      </option>
-    )
+  const layerList = [currentLayer, ...props.layers.filter((layer) => layer !== currentLayer)].map(
+    (layer) => {
+      if (layer === '') {
+        return (
+          <option key="disabled" value="disabled">
+            No Layer Selected
+          </option>
+        );
+      }
+      return (
+        <option key={`layerEncodingId_${layer}`} value={layer}>
+          {layer}
+        </option>
+      );
+    }
   );
-  if (layerList[0].props.value === '') {
-    layerList[0] = (
-      <option key="disabled" value="disabled">
-        No Layer Selected
-      </option>
-    );
-  }
 
   return (
     <div className="h-full flex">

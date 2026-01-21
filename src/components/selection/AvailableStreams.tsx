@@ -1,11 +1,6 @@
-﻿import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { StatusContext } from '../../providers/StatusProvider';
-
-interface StatusResult {
-  streamKey: string;
-  videoStreams: VideoStream[];
-}
+import { StatusContext, StatusResult } from '../../providers/StatusContext';
 
 interface VideoStream {
   lastKeyFrameSeen: string;
@@ -19,21 +14,19 @@ const AvailableStreams = () => {
   const navigate = useNavigate();
 
   const { streamStatus, refreshStatus } = useContext(StatusContext);
-  const [streams, setStreams] = useState<StreamEntry[] | undefined>(undefined);
 
   useEffect(() => {
     refreshStatus();
-  }, []);
+  }, [refreshStatus]);
 
-  useEffect(() => {
-    setStreams(() =>
-      streamStatus
-        ?.filter((resultEntry) => resultEntry.videoStreams.length > 0)
-        .map((resultEntry: StatusResult) => ({
-          streamKey: resultEntry.streamKey,
-          videoStreams: resultEntry.videoStreams,
-        }))
-    );
+  const streams = useMemo(() => {
+    if (!streamStatus) return undefined;
+    return streamStatus
+      ?.filter((resultEntry) => resultEntry.videoStreams.length > 0)
+      .map((resultEntry: StatusResult) => ({
+        streamKey: resultEntry.streamKey,
+        videoStreams: resultEntry.videoStreams,
+      }));
   }, [streamStatus]);
 
   const onWatchStreamClick = (key: string) => {
