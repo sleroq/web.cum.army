@@ -251,10 +251,7 @@ function BrowserBroadcaster() {
           </PlayerHeader>
         )}
         {connectFailed && (
-          <PlayerHeader headerType={'Error'}>
-            {' '}
-            Failed to start ${SITE_NAME} session 👮{' '}
-          </PlayerHeader>
+          <PlayerHeader headerType={'Error'}> Failed to start {SITE_NAME} session 👮 </PlayerHeader>
         )}
         {hasPacketLoss && (
           <PlayerHeader headerType={'Warning'}> WebRTC is experiencing packet loss</PlayerHeader>

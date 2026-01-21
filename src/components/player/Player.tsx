@@ -384,7 +384,7 @@ const Player = (props: PlayerProps) => {
         <p
           className={`bg-red-700 text-white text-lg text-center p-4 ${!cinemaMode ? 'rounded-t-lg' : ''} whitespace-pre-wrap`}
         >
-          Failed to start ${SITE_NAME} session 👮{' '}
+          Failed to start {SITE_NAME} session 👮{' '}
         </p>
       )}
       <div
