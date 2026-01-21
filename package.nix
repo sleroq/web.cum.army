@@ -17,7 +17,7 @@ buildNpmPackage {
 
   npmBuildScript = "build";
 
-  npmDepsHash = "sha256-suogIidJASSIKDB+Ym7O7v1v+80lq8SoG11HSzFUM8k=";
+  npmDepsHash = "sha256-wZ5OSOyZNXl79O/saPpFaaHfhyY2u4yO1gf4KfDsiYE=";
 
   installPhase = ''
     runHook preInstall
