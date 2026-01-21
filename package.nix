@@ -1,5 +1,7 @@
 { lib
 , buildNpmPackage
+, siteTitle ? "Broadcast Box"
+, apiPath ? ""
 }:
 
 buildNpmPackage {
@@ -17,14 +19,9 @@ buildNpmPackage {
 
   npmBuildScript = "build";
 
-  preBuild = ''
-    # Load environment variables from .env file
-    if [ -f .env ]; then
-      set -a
-      source .env
-      set +a
-    fi
-  '';
+  # Environment variables for the build
+  VITE_SITE_TITLE = siteTitle;
+  VITE_API_PATH = apiPath;
 
   npmDepsHash = "sha256-BxhPPftuPLwWbe5XY5OHFobYAn+v29Nn/WcnLuh7Tfo=";
 
@@ -33,7 +30,9 @@ buildNpmPackage {
 
     mkdir -p "$out"
     cp -R build/* "$out"/
-    cp -R assets "$out"/
+    if [ -d assets ]; then
+      cp -R assets "$out"/
+    fi
 
     runHook postInstall
   '';
