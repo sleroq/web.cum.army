@@ -7,6 +7,7 @@ import {
   Square2StackIcon,
   RectangleStackIcon,
   XMarkIcon,
+  ChatBubbleLeftRightIcon,
 } from '@heroicons/react/16/solid';
 import VolumeComponent from './components/VolumeComponent';
 import PlayPauseComponent from './components/PlayPauseComponent';
@@ -24,6 +25,8 @@ interface PlayerProps {
   streamKey: string;
   canClose?: boolean;
   onClose?: () => void;
+  isChatOpen?: boolean;
+  onToggleChat?: () => void;
 }
 
 const Player = (props: PlayerProps) => {
@@ -31,7 +34,7 @@ const Player = (props: PlayerProps) => {
   const { pauseOnClick } = useSettings();
 
   const apiPath = import.meta.env.VITE_API_PATH;
-  const { streamKey, canClose, onClose } = props;
+  const { streamKey, canClose, onClose, isChatOpen, onToggleChat } = props;
 
   const [videoLayers, setVideoLayers] = useState([]);
   const [hasSignal, setHasSignal] = useState<boolean>(false);
@@ -75,6 +78,27 @@ const Player = (props: PlayerProps) => {
   const lastClickTimeRef = useRef(0);
   const clickTimeoutRef = useRef<number | undefined>(undefined);
   const streamVideoPlayerId = streamKey + '_videoPlayer';
+
+  useEffect(() => {
+    const updateHeight = () => {
+      const player = document.getElementById(streamVideoPlayerId);
+      if (player) {
+        player.parentElement?.parentElement?.style.setProperty(
+          '--player-height',
+          `${player.offsetHeight}px`
+        );
+      }
+    };
+
+    const resizeObserver = new ResizeObserver(updateHeight);
+    const player = document.getElementById(streamVideoPlayerId);
+    if (player) {
+      resizeObserver.observe(player);
+      updateHeight();
+    }
+
+    return () => resizeObserver.disconnect();
+  }, [streamVideoPlayerId]);
 
   // Use the simplified autoplay hook
   const { showPlayButton, handlePlayButtonClick } = useVideoAutoplay(videoRef, {
@@ -382,7 +406,7 @@ const Player = (props: PlayerProps) => {
     <div id={streamVideoPlayerId} className="block w-full relative z-0">
       {connectFailed && (
         <p
-          className={`bg-red-700 text-white text-lg text-center p-4 ${!cinemaMode ? 'rounded-t-lg' : ''} whitespace-pre-wrap`}
+          className={`bg-red-700 text-white text-lg text-center p-4 ${!cinemaMode ? 'rounded-t-xl' : ''} whitespace-pre-wrap`}
         >
           Failed to start {SITE_NAME} session 👮{' '}
         </p>
@@ -391,25 +415,48 @@ const Player = (props: PlayerProps) => {
         onClick={handleVideoPlayerClick}
         onDoubleClick={handleVideoPlayerDoubleClick}
         className={`
-					absolute
-					${!cinemaMode ? 'rounded-md' : ''}
-					w-full
-					h-full
-					z-10
-					transition-all duration-300
-					${!hasSignal && 'bg-surface'}
-					${
+          absolute
+          ${!cinemaMode ? 'rounded-xl' : ''}
+          w-full
+          h-full
+          z-10
+          transition-all duration-300
+          ${!hasSignal && 'bg-surface'}
+          ${
             hasSignal &&
             `
-						${!videoOverlayVisible ? 'cursor-none' : 'cursor-default'}
-					`
+            ${!videoOverlayVisible ? 'cursor-none' : 'cursor-default'}
+          `
           }
-				`}
+        `}
       >
         {/*Opaque background*/}
         <div
-          className={`absolute w-full bg-background ${!hasSignal ? 'opacity-40' : 'opacity-0'} h-full ${!cinemaMode ? 'rounded-md' : ''}`}
+          className={`absolute w-full bg-background ${!hasSignal ? 'opacity-40' : 'opacity-0'} h-full ${!cinemaMode ? 'rounded-xl' : ''}`}
         />
+
+        {/* Chat Toggle Button */}
+        {onToggleChat && (
+          <div
+            className={`absolute top-3 ${canClose ? 'right-14' : 'right-3'} z-30 transition-opacity duration-500 ${
+              hasSignal && !videoOverlayVisible ? 'opacity-0 pointer-events-none' : 'opacity-100'
+            }`}
+          >
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleChat();
+              }}
+              className={`p-2 rounded-full backdrop-blur-md text-white border border-white/10 shadow-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 ${
+                isChatOpen ? 'bg-brand' : 'bg-surface/60 hover:bg-surface/80'
+              }`}
+              aria-label="Toggle chat"
+            >
+              <ChatBubbleLeftRightIcon className="size-5" />
+            </button>
+          </div>
+        )}
 
         {/* Close Button */}
         {canClose && (
@@ -440,7 +487,7 @@ const Player = (props: PlayerProps) => {
               hasSignal && !videoOverlayVisible
                 ? 'opacity-0 pointer-events-none'
                 : 'opacity-100 pointer-events-auto'
-            } text-white w-full flex flex-row items-center gap-1.5 sm:gap-3 ${!cinemaMode ? 'rounded-b-md' : ''} px-2 sm:px-3 min-h-10 max-h-10 sm:min-h-12 sm:max-h-12 border-t border-white/10 [&_svg]:cursor-pointer [&_svg]:size-6! sm:[&_svg]:size-7!`}
+            } text-white w-full flex flex-row items-center gap-1.5 sm:gap-3 ${!cinemaMode ? 'rounded-b-xl' : ''} px-2 sm:px-3 min-h-10 max-h-10 sm:min-h-12 sm:max-h-12 border-t border-white/10 [&_svg]:cursor-pointer [&_svg]:size-6! sm:[&_svg]:size-7!`}
           >
             <PlayPauseComponent videoRef={videoRef} />
 
@@ -547,7 +594,7 @@ const Player = (props: PlayerProps) => {
         autoPlay
         muted
         playsInline
-        className={`bg-transparent ${!cinemaMode ? 'rounded-md' : ''} w-full aspect-video relative block object-contain transition-all duration-300`}
+        className={`bg-transparent ${!cinemaMode ? 'rounded-xl' : ''} w-full aspect-video relative block object-contain transition-all duration-300`}
       />
     </div>
   );

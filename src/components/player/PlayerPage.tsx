@@ -2,12 +2,16 @@ import React, { useState } from 'react';
 import Player from './Player';
 import ModalTextInput from '../shared/ModalTextInput';
 import { useCinemaMode } from '../../providers/CinemaModeContext';
+import ChatPanel from './components/ChatPanel';
 
 const PlayerPage = () => {
   const { cinemaMode } = useCinemaMode();
 
   const [streamKeys, setStreamKeys] = useState<string[]>([window.location.pathname.substring(1)]);
   const [isModalOpen, setIsModelOpen] = useState<boolean>(false);
+  const [isChatOpen, setIsChatOpen] = useState<boolean>(() => {
+    return localStorage.getItem('chat-open') !== 'false';
+  });
 
   const addStream = (streamKey: string) => {
     if (streamKeys.some((key: string) => key.toLowerCase() === streamKey.toLowerCase())) {
@@ -20,6 +24,16 @@ const PlayerPage = () => {
   const removeStream = (index: number) => {
     setStreamKeys((prev) => prev.filter((_, i) => i !== index));
   };
+
+  const toggleChat = () => {
+    setIsChatOpen((prev) => {
+      const next = !prev;
+      localStorage.setItem('chat-open', next ? 'true' : 'false');
+      return next;
+    });
+  };
+
+  const isSingleStream = streamKeys.length === 1;
 
   return (
     <div className="bg-background text-foreground">
@@ -46,13 +60,15 @@ const PlayerPage = () => {
                 cinemaMode ? 'max-w-full' : 'max-w-[1200px]'
               }`}
             >
-              <h1 className="text-xl md:text-2xl font-semibold tracking-tight">
-                Welcome to{' '}
-                <code className="font-mono bg-foreground/10 px-1.5 py-0.5 rounded text-brand-hover">
-                  {streamKeys[0]}
-                </code>{' '}
-                stream <span className="text-brand">•</span>
-              </h1>
+              <div className="flex items-center gap-4">
+                <h1 className="text-xl md:text-2xl font-semibold tracking-tight">
+                  Welcome to{' '}
+                  <code className="font-mono bg-foreground/10 px-1.5 py-0.5 rounded text-brand-hover">
+                    {streamKeys[0]}
+                  </code>{' '}
+                  stream <span className="text-brand">•</span>
+                </h1>
+              </div>
               <span className="text-sm text-muted">
                 {streamKeys.length} stream{streamKeys.length === 1 ? '' : 's'}
               </span>
@@ -61,28 +77,74 @@ const PlayerPage = () => {
 
           <div
             className={
-              `grid w-full grid-cols-1 gap-3 md:gap-4 transition-all duration-300 ` +
-              `${streamKeys.length === 1 && !cinemaMode ? 'max-w-[1200px]' : ''} ` +
-              `${streamKeys.length === 1 && cinemaMode ? 'max-w-full' : ''} ` +
-              `${streamKeys.length !== 1 ? 'md:grid-cols-2' : ''}`
+              `w-full transition-all duration-300 ` +
+              `${isSingleStream && !cinemaMode ? 'max-w-[1200px]' : ''} ` +
+              `${isSingleStream && cinemaMode ? 'max-w-full' : ''} `
             }
           >
-            {streamKeys.map((streamKey, index) => (
+            {isSingleStream ? (
               <div
-                key={`${streamKey}_frame`}
-                className={`overflow-hidden bg-surface transition-all duration-300 ${
-                  cinemaMode
-                    ? 'rounded-none ring-0 shadow-none'
-                    : 'rounded-xl ring-1 ring-border shadow-[0_20px_60px_rgba(0,0,0,0.55)]'
-                }`}
+                className={`flex flex-col lg:flex-row ${cinemaMode ? 'gap-0' : 'gap-4'} w-full items-start`}
               >
-                <Player
-                  streamKey={streamKey}
-                  canClose={index > 0}
-                  onClose={() => removeStream(index)}
-                />
+                <div
+                  className={`flex-1 overflow-hidden bg-surface transition-all duration-300 relative bg-clip-padding ${
+                    cinemaMode
+                      ? 'rounded-none border-0 shadow-none'
+                      : 'rounded-xl border border-border shadow-[0_20px_60px_rgba(0,0,0,0.55)]'
+                  }`}
+                >
+                  <Player
+                    streamKey={streamKeys[0]}
+                    canClose={false}
+                    onClose={() => removeStream(0)}
+                    isChatOpen={isChatOpen}
+                    onToggleChat={toggleChat}
+                  />
+                </div>
+                <div
+                  className={`transition-all duration-300 overflow-hidden shrink-0 ${
+                    isChatOpen ? 'w-80' : 'w-0'
+                  }`}
+                  style={{ height: 'var(--player-height, 0px)' }}
+                >
+                  <ChatPanel
+                    streamKey={streamKeys[0]}
+                    variant="sidebar"
+                    isOpen={isChatOpen}
+                    cinemaMode={cinemaMode}
+                  />
+                </div>
               </div>
-            ))}
+            ) : (
+              <div
+                className={`grid w-full grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 transition-all duration-300`}
+              >
+                {streamKeys.map((streamKey, index) => (
+                  <div
+                    key={`${streamKey}_frame`}
+                    className={`flex flex-col overflow-hidden bg-surface transition-all duration-300 bg-clip-padding ${
+                      cinemaMode
+                        ? 'rounded-none border-0 shadow-none'
+                        : 'rounded-xl border border-border shadow-[0_20px_60px_rgba(0,0,0,0.55)]'
+                    }`}
+                  >
+                    <Player
+                      streamKey={streamKey}
+                      canClose={index > 0}
+                      onClose={() => removeStream(index)}
+                      isChatOpen={isChatOpen}
+                      onToggleChat={toggleChat}
+                    />
+                    <ChatPanel
+                      streamKey={streamKey}
+                      variant="below"
+                      isOpen={isChatOpen}
+                      cinemaMode={cinemaMode}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Controls */}
