@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState, useContext } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { parseLinkHeader } from '@web3-storage/parse-link-header';
 import {
   ArrowsPointingOutIcon,
@@ -13,20 +13,17 @@ import QualitySelectorComponent from './components/QualitySelectorComponent';
 import CurrentViewersComponent from './components/CurrentViewersComponent';
 import LatencyComponent from './components/LatencyComponent';
 import VideoHealthComponent from './components/VideoHealthComponent';
+import Tooltip from '../shared/Tooltip';
 import { useVideoAutoplay } from '../../hooks/useVideoAutoplay';
 import { SITE_NAME } from '../../config/site';
-import { CinemaModeContext } from '../../providers/CinemaModeProvider';
+import { useCinemaMode } from '../../providers/CinemaModeContext';
 
 interface PlayerProps {
   streamKey: string;
 }
 
 const Player = (props: PlayerProps) => {
-  const cinemaContext = useContext(CinemaModeContext);
-  if (!cinemaContext) {
-    throw new Error('Player must be used within a CinemaModeProvider');
-  }
-  const { cinemaMode, toggleCinemaMode } = cinemaContext;
+  const { cinemaMode, toggleCinemaMode } = useCinemaMode();
 
   const apiPath = import.meta.env.VITE_API_PATH;
   const { streamKey } = props;
@@ -443,12 +440,18 @@ const Player = (props: PlayerProps) => {
                 onLayerSelect={setCurrentLayer}
               />
             )}
-            <RectangleStackIcon
-              className={cinemaMode ? 'text-brand' : 'text-white'}
-              onClick={toggleCinemaMode}
-            />
-            <Square2StackIcon onClick={() => videoRef.current?.requestPictureInPicture()} />
-            <ArrowsPointingOutIcon onClick={() => videoRef.current?.requestFullscreen()} />
+            <Tooltip text="Cinema Mode">
+              <RectangleStackIcon
+                className={cinemaMode ? 'text-brand' : 'text-white'}
+                onClick={toggleCinemaMode}
+              />
+            </Tooltip>
+            <Tooltip text="Picture-in-Picture">
+              <Square2StackIcon onClick={() => videoRef.current?.requestPictureInPicture()} />
+            </Tooltip>
+            <Tooltip text="Fullscreen">
+              <ArrowsPointingOutIcon onClick={() => videoRef.current?.requestFullscreen()} />
+            </Tooltip>
           </div>
         </div>
 

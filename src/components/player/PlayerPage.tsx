@@ -1,11 +1,10 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import Player from './Player';
 import ModalTextInput from '../shared/ModalTextInput';
-import { CinemaModeContext } from '../../providers/CinemaModeProvider';
+import { useCinemaMode } from '../../providers/CinemaModeContext';
 
 const PlayerPage = () => {
-  const cinemaContext = useContext(CinemaModeContext);
-  const cinemaMode = cinemaContext?.cinemaMode || false;
+  const { cinemaMode } = useCinemaMode();
 
   const [streamKeys, setStreamKeys] = useState<string[]>([window.location.pathname.substring(1)]);
   const [isModalOpen, setIsModelOpen] = useState<boolean>(false);

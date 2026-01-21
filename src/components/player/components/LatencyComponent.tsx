@@ -1,5 +1,6 @@
 import React from 'react';
 import { SignalIcon } from '@heroicons/react/16/solid';
+import Tooltip from '../../shared/Tooltip';
 
 interface LatencyComponentProps {
   latency: number;
@@ -15,13 +16,14 @@ const LatencyComponent = ({ latency }: LatencyComponentProps) => {
   };
 
   return (
-    <div
-      className={`flex flex-row items-center gap-1 text-xs font-medium whitespace-nowrap ${getLatencyColor(latency)}`}
-      title="Estimated Latency"
-    >
-      <SignalIcon className="size-3.5!" />
-      <span>{Math.round(latency)}ms</span>
-    </div>
+    <Tooltip text="Estimated Latency">
+      <div
+        className={`flex flex-row items-center gap-1 text-xs font-medium whitespace-nowrap ${getLatencyColor(latency)}`}
+      >
+        <SignalIcon className="size-3.5!" />
+        <span>{Math.round(latency)}ms</span>
+      </div>
+    </Tooltip>
   );
 };
 

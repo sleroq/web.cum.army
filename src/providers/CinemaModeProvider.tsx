@@ -1,15 +1,6 @@
-import React, { useState, useEffect, useMemo, Dispatch, SetStateAction } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-
-export interface CinemaModeProviderContextProps {
-  cinemaMode: boolean;
-  setCinemaMode: Dispatch<SetStateAction<boolean>>;
-  toggleCinemaMode: () => void;
-}
-
-export const CinemaModeContext = React.createContext<CinemaModeProviderContextProps | undefined>(
-  undefined
-);
+import { CinemaModeContext, CinemaModeProviderContextProps } from './CinemaModeContext';
 
 interface CinemaModeProviderProps {
   children: React.ReactNode;

@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useMemo } from 'react';
 import { UsersIcon } from '@heroicons/react/20/solid';
 import { StatusContext } from '../../../providers/StatusContext';
+import Tooltip from '../../shared/Tooltip';
 
 interface CurrentViewersComponentProps {
   streamKey: string;
@@ -24,10 +25,12 @@ const CurrentViewersComponent = ({ streamKey }: CurrentViewersComponentProps) =>
   }, [streamKey, streamStatus]);
 
   return (
-    <div className={'flex flex-row items-center gap-1 text-xs font-medium whitespace-nowrap'}>
-      <UsersIcon className={'size-3.5!'} />
-      {currentViewersCount}
-    </div>
+    <Tooltip text="Current Viewers">
+      <div className={'flex flex-row items-center gap-1 text-xs font-medium whitespace-nowrap'}>
+        <UsersIcon className={'size-3.5!'} />
+        {currentViewersCount}
+      </div>
+    </Tooltip>
   );
 };
 

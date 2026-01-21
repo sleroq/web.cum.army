@@ -1,15 +1,14 @@
 import { Link, Outlet } from 'react-router-dom';
-import React, { useContext } from 'react';
+import React from 'react';
 import { Cog6ToothIcon } from '@heroicons/react/24/solid';
 import { useSettings } from '../../providers/SettingsContext';
 import SettingsModal from '../shared/SettingsModal';
 import { SITE_NAME } from '../../config/site';
-import { CinemaModeContext } from '../../providers/CinemaModeProvider';
+import { useCinemaMode } from '../../providers/CinemaModeContext';
 
 const RootWrapper = () => {
   const { setSettingsOpen } = useSettings();
-  const cinemaContext = useContext(CinemaModeContext);
-  const cinemaMode = cinemaContext?.cinemaMode || false;
+  const { cinemaMode } = useCinemaMode();
 
   return (
     <div className="min-h-screen flex flex-col">

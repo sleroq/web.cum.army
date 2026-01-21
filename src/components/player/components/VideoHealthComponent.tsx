@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { FilmIcon } from '@heroicons/react/16/solid';
+import Tooltip from '../../shared/Tooltip';
 
 interface VideoHealthComponentProps {
   fps: number;
@@ -45,20 +46,19 @@ const VideoHealthComponent = ({ fps, dropped }: VideoHealthComponentProps) => {
   };
 
   return (
-    <div
-      className="flex flex-row items-center gap-2 text-xs font-medium whitespace-nowrap"
-      title="Video Health (FPS / Dropped Frames)"
-    >
-      <div className={`flex flex-row items-center gap-1 ${getFpsColor()}`}>
-        <FilmIcon className="size-3.5!" />
-        <span>{Math.round(fps)} FPS</span>
-      </div>
-      {dropped > 0 && (
-        <div className="text-red-400 animate-pulse">
-          <span>Dropped: {dropped}</span>
+    <Tooltip text="Video Health (FPS / Dropped Frames)">
+      <div className="flex flex-row items-center gap-2 text-xs font-medium whitespace-nowrap">
+        <div className={`flex flex-row items-center gap-1 ${getFpsColor()}`}>
+          <FilmIcon className="size-3.5!" />
+          <span>{Math.round(fps)} FPS</span>
         </div>
-      )}
-    </div>
+        {dropped > 0 && (
+          <div className="text-red-400 animate-pulse">
+            <span>Dropped: {dropped}</span>
+          </div>
+        )}
+      </div>
+    </Tooltip>
   );
 };
 

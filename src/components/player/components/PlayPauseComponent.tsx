@@ -1,5 +1,6 @@
 import React, { useSyncExternalStore } from 'react';
 import { PauseIcon, PlayIcon } from '@heroicons/react/16/solid';
+import Tooltip from '../../shared/Tooltip';
 
 interface PlayPauseComponentProps {
   videoRef: React.RefObject<HTMLVideoElement | null>;
@@ -36,17 +37,21 @@ const PlayPauseComponent = ({ videoRef }: PlayPauseComponentProps) => {
 
   if (isPaused) {
     return (
-      <PlayIcon
-        className="size-12! shrink-0 cursor-pointer text-brand transition-colors hover:text-brand-hover"
-        onClick={togglePlay}
-      />
+      <Tooltip text="Play">
+        <PlayIcon
+          className="size-12! shrink-0 cursor-pointer text-brand transition-colors hover:text-brand-hover"
+          onClick={togglePlay}
+        />
+      </Tooltip>
     );
   }
   return (
-    <PauseIcon
-      className="size-12! shrink-0 cursor-pointer text-brand transition-colors hover:text-brand-hover"
-      onClick={togglePlay}
-    />
+    <Tooltip text="Pause">
+      <PauseIcon
+        className="size-12! shrink-0 cursor-pointer text-brand transition-colors hover:text-brand-hover"
+        onClick={togglePlay}
+      />
+    </Tooltip>
   );
 };
 

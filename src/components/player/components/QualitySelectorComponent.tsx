@@ -1,5 +1,6 @@
 import React, { ChangeEvent, useState } from 'react';
 import { ChartBarIcon } from '@heroicons/react/16/solid';
+import Tooltip from '../../shared/Tooltip';
 
 interface QualityComponentProps {
   layers: string[];
@@ -40,18 +41,20 @@ const QualitySelectorComponent = (props: QualityComponentProps) => {
 
   return (
     <div className="flex items-center relative">
-      <button
-        type="button"
-        onClick={() => setIsOpen((prev) => (props.layers.length <= 1 ? false : !prev))}
-        className={`p-1 rounded hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/50 ${
-          props.hasPacketLoss ? 'text-orange-600' : ''
-        }`}
-        aria-label="Quality Selector"
-        aria-haspopup="listbox"
-        aria-expanded={isOpen}
-      >
-        <ChartBarIcon className="size-7" />
-      </button>
+      <Tooltip text="Quality">
+        <button
+          type="button"
+          onClick={() => setIsOpen((prev) => (props.layers.length <= 1 ? false : !prev))}
+          className={`p-1 rounded hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/50 ${
+            props.hasPacketLoss ? 'text-orange-600' : ''
+          }`}
+          aria-label="Quality Selector"
+          aria-haspopup="listbox"
+          aria-expanded={isOpen}
+        >
+          <ChartBarIcon className="size-7" />
+        </button>
+      </Tooltip>
 
       {isOpen && (
         <select

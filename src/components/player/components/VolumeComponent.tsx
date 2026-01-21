@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { SpeakerWaveIcon, SpeakerXMarkIcon } from '@heroicons/react/16/solid';
+import Tooltip from '../../shared/Tooltip';
 
 interface VolumeComponentProps {
   isMuted: boolean;
@@ -27,8 +28,10 @@ const VolumeComponent = ({ isMuted, onStateChanged, onVolumeChanged }: VolumeCom
       onMouseLeave={() => setShowSlider(false)}
       className="flex justify-start max-w-42 gap-2 items-center"
     >
-      {isMuted && <SpeakerXMarkIcon onClick={() => onStateChanged(!isMuted)} />}
-      {!isMuted && <SpeakerWaveIcon onClick={() => onStateChanged(!isMuted)} />}
+      <Tooltip text={isMuted ? 'Unmute' : 'Mute'}>
+        {isMuted && <SpeakerXMarkIcon onClick={() => onStateChanged(!isMuted)} />}
+        {!isMuted && <SpeakerWaveIcon onClick={() => onStateChanged(!isMuted)} />}
+      </Tooltip>
       <input
         id="default-range"
         type="range"
