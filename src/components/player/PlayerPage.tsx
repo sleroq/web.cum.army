@@ -17,6 +17,10 @@ const PlayerPage = () => {
     setIsModelOpen((prev) => !prev);
   };
 
+  const removeStream = (index: number) => {
+    setStreamKeys((prev) => prev.filter((_, i) => i !== index));
+  };
+
   return (
     <div className="bg-background text-foreground">
       {isModalOpen && (
@@ -63,14 +67,18 @@ const PlayerPage = () => {
               `${streamKeys.length !== 1 ? 'md:grid-cols-2' : ''}`
             }
           >
-            {streamKeys.map((streamKey) => (
+            {streamKeys.map((streamKey, index) => (
               <div
                 key={`${streamKey}_frame`}
                 className={`rounded-xl overflow-hidden bg-surface ring-1 ring-border shadow-[0_20px_60px_rgba(0,0,0,0.55)] ${
                   cinemaMode ? 'rounded-none ring-0 shadow-none' : ''
                 }`}
               >
-                <Player streamKey={streamKey} />
+                <Player
+                  streamKey={streamKey}
+                  canClose={index > 0}
+                  onClose={() => removeStream(index)}
+                />
               </div>
             ))}
           </div>

@@ -6,6 +6,7 @@ import {
   PlayIcon,
   Square2StackIcon,
   RectangleStackIcon,
+  XMarkIcon,
 } from '@heroicons/react/16/solid';
 import VolumeComponent from './components/VolumeComponent';
 import PlayPauseComponent from './components/PlayPauseComponent';
@@ -20,13 +21,15 @@ import { useCinemaMode } from '../../providers/CinemaModeContext';
 
 interface PlayerProps {
   streamKey: string;
+  canClose?: boolean;
+  onClose?: () => void;
 }
 
 const Player = (props: PlayerProps) => {
   const { cinemaMode, toggleCinemaMode } = useCinemaMode();
 
   const apiPath = import.meta.env.VITE_API_PATH;
-  const { streamKey } = props;
+  const { streamKey, canClose, onClose } = props;
 
   const [videoLayers, setVideoLayers] = useState([]);
   const [hasSignal, setHasSignal] = useState<boolean>(false);
@@ -398,6 +401,27 @@ const Player = (props: PlayerProps) => {
         <div
           className={`absolute w-full bg-background ${!hasSignal ? 'opacity-40' : 'opacity-0'} h-full ${!cinemaMode ? 'rounded-md' : ''}`}
         />
+
+        {/* Close Button */}
+        {canClose && (
+          <div
+            className={`absolute top-3 right-3 z-30 transition-opacity duration-500 ${
+              hasSignal && !videoOverlayVisible ? 'opacity-0 pointer-events-none' : 'opacity-100'
+            }`}
+          >
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose?.();
+              }}
+              className="p-2 rounded-full bg-surface/60 hover:bg-surface/80 backdrop-blur-md text-white border border-white/10 shadow-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+              aria-label="Close stream"
+            >
+              <XMarkIcon className="size-5" />
+            </button>
+          </div>
+        )}
 
         {/*Buttons */}
         <div className="absolute bottom-0 w-full flex z-20">
