@@ -49,6 +49,7 @@ export function StatusProvider(props: StatusProviderProps) {
 
   const fetchStatusErrorHandler = useCallback((error: FetchError) => {
     console.error('StatusProviderError', error.status, error.message);
+    console.error(`Don't worry about status errors. This does not affect the stream.`);
 
     if (error.status === 503) {
       setIsStatusActive(false);
