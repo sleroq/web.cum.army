@@ -11,6 +11,7 @@ const STORAGE_KEY = 'broadcast_box_settings';
 interface StoredSettings {
   themeId: string;
   customColors: ThemeColors;
+  pauseOnClick?: boolean;
 }
 
 export const SettingsProvider = ({ children }: SettingsProviderProps) => {
@@ -59,6 +60,19 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
     return DEFAULT_THEME.colors;
   });
 
+  const [pauseOnClick, setPauseOnClick] = useState<boolean>(() => {
+    const stored = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null;
+    if (stored) {
+      try {
+        const parsed: StoredSettings = JSON.parse(stored);
+        return parsed.pauseOnClick ?? true;
+      } catch {
+        // Error already logged
+      }
+    }
+    return true;
+  });
+
   const [isSettingsOpen, setSettingsOpen] = useState(false);
 
   // Save settings to local storage
@@ -66,9 +80,10 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
     const settings: StoredSettings = {
       themeId: currentThemeId,
       customColors,
+      pauseOnClick,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-  }, [currentThemeId, customColors]);
+  }, [currentThemeId, customColors, pauseOnClick]);
 
   // Apply theme to CSS variables
   useEffect(() => {
@@ -127,10 +142,20 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
       customColors,
       setTheme,
       updateCustomColor,
+      pauseOnClick,
+      setPauseOnClick,
       isSettingsOpen,
       setSettingsOpen,
     }),
-    [currentThemeId, customColors, setTheme, updateCustomColor, isSettingsOpen]
+    [
+      currentThemeId,
+      customColors,
+      setTheme,
+      updateCustomColor,
+      pauseOnClick,
+      setPauseOnClick,
+      isSettingsOpen,
+    ]
   );
 
   return <SettingsContext.Provider value={contextValue}>{children}</SettingsContext.Provider>;

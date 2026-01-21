@@ -10,6 +10,8 @@ const SettingsModal = () => {
     setTheme,
     customColors,
     updateCustomColor,
+    pauseOnClick,
+    setPauseOnClick,
   } = useSettings();
 
   React.useEffect(() => {
@@ -66,6 +68,26 @@ const SettingsModal = () => {
               ))}
               <option value="custom">Custom</option>
             </select>
+          </div>
+
+          {/* Player Settings */}
+          <div>
+            <label className="block text-sm font-medium text-muted mb-2">Player</label>
+            <div className="flex items-center justify-between p-3 bg-input border border-border rounded">
+              <span className="text-sm text-foreground">Pause on click</span>
+              <button
+                onClick={() => setPauseOnClick(!pauseOnClick)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                  pauseOnClick ? 'bg-brand' : 'bg-surface-hover'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    pauseOnClick ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
           </div>
 
           {/* Color Customization */}

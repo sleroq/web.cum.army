@@ -18,6 +18,7 @@ import Tooltip from '../shared/Tooltip';
 import { useVideoAutoplay } from '../../hooks/useVideoAutoplay';
 import { SITE_NAME } from '../../config/site';
 import { useCinemaMode } from '../../providers/CinemaModeContext';
+import { useSettings } from '../../providers/SettingsContext';
 
 interface PlayerProps {
   streamKey: string;
@@ -27,6 +28,7 @@ interface PlayerProps {
 
 const Player = (props: PlayerProps) => {
   const { cinemaMode, toggleCinemaMode } = useCinemaMode();
+  const { pauseOnClick } = useSettings();
 
   const apiPath = import.meta.env.VITE_API_PATH;
   const { streamKey, canClose, onClose } = props;
@@ -106,6 +108,8 @@ const Player = (props: PlayerProps) => {
   }, []);
 
   const handleVideoPlayerClick = () => {
+    if (!pauseOnClick) return;
+
     lastClickTimeRef.current = Date.now();
 
     clickTimeoutRef.current = setTimeout(() => {

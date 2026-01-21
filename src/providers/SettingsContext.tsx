@@ -6,6 +6,8 @@ export interface SettingsContextProps {
   customColors: ThemeColors;
   setTheme: (themeId: string) => void;
   updateCustomColor: (key: keyof ThemeColors, value: string) => void;
+  pauseOnClick: boolean;
+  setPauseOnClick: (pause: boolean) => void;
   isSettingsOpen: boolean;
   setSettingsOpen: (isOpen: boolean) => void;
 }
