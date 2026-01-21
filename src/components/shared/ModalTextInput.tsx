@@ -18,6 +18,16 @@ export default function ModalTextInput<T extends string | number>(props: Props<T
   const [isOpen, setIsOpen] = useState<boolean>(props.isOpen);
   const valueRef = useRef<HTMLInputElement>(null);
 
+  const handleClose = () => {
+    setIsOpen(false);
+    props.onClose?.();
+  };
+
+  const handleAccept = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    props.onAccept?.(valueRef.current?.value as T);
+  };
+
   if (!isOpen) {
     return <></>;
   }
@@ -26,11 +36,12 @@ export default function ModalTextInput<T extends string | number>(props: Props<T
     <div className="flex justify-center items-center h-screen absolute z-100 ">
       <div
         className="fixed inset-0 bg-transparent flex items-center justify-center"
-        onClick={() => props.canCloseOnBackgroundClick && setIsOpen(false)}
+        onClick={() => props.canCloseOnBackgroundClick && handleClose()}
       >
-        <div
+        <form
           className="p-6 rounded-lg shadow-lg w-1/2 bg-surface"
           onClick={(e) => e.stopPropagation()}
+          onSubmit={handleAccept}
         >
           <h2 className="text-lg font-semibold">{props.title}</h2>
           <p className="mb-2">{props.message}</p>
@@ -39,28 +50,30 @@ export default function ModalTextInput<T extends string | number>(props: Props<T
             className="mb-6 appearance-none border w-full py-2 px-3 leading-tight focus:outline-hidden focus:shadow-outline bg-input border-border text-foreground rounded-sm shadow-md placeholder-muted"
             type="text"
             ref={valueRef!}
-            placeholder={`Insert the key you of the stream you want to add`}
+            defaultValue={props.initialValue}
+            placeholder={props.message}
             autoFocus
           />
 
           {/*Buttons*/}
           <div className="flex flex-row justify-items-stretch gap-4 ">
-            {props.onAccept !== null && (
+            {props.onAccept !== undefined && (
               <button
+                type="submit"
                 className="bg-brand hover:bg-brand-hover text-white px-4 py-2 rounded"
-                onClick={() => props.onAccept?.(valueRef.current?.value as T)}
               >
                 Accept
               </button>
             )}
             <button
-              onClick={() => setIsOpen(false)}
+              type="button"
+              onClick={handleClose}
               className="bg-input hover:bg-surface text-foreground px-4 py-2 rounded"
             >
               Close
             </button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );
