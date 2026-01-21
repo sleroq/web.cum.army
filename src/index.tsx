@@ -5,6 +5,7 @@ import App from './App';
 import { BrowserRouter } from 'react-router-dom';
 import { StatusProvider } from './providers/StatusProvider';
 import { SettingsProvider } from './providers/SettingsProvider';
+import { CinemaModeProvider } from './providers/CinemaModeProvider';
 import { SITE_NAME } from './config/site';
 
 const rootElement = document.getElementById('root');
@@ -23,7 +24,9 @@ root.render(
     <BrowserRouter basename={path}>
       <StatusProvider>
         <SettingsProvider>
-          <App />
+          <CinemaModeProvider>
+            <App />
+          </CinemaModeProvider>
         </SettingsProvider>
       </StatusProvider>
     </BrowserRouter>

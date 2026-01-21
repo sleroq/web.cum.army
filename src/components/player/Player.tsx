@@ -1,10 +1,11 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useContext } from 'react';
 import { parseLinkHeader } from '@web3-storage/parse-link-header';
 import {
   ArrowsPointingOutIcon,
   PauseIcon,
   PlayIcon,
   Square2StackIcon,
+  RectangleStackIcon,
 } from '@heroicons/react/16/solid';
 import VolumeComponent from './components/VolumeComponent';
 import PlayPauseComponent from './components/PlayPauseComponent';
@@ -14,13 +15,19 @@ import LatencyComponent from './components/LatencyComponent';
 import VideoHealthComponent from './components/VideoHealthComponent';
 import { useVideoAutoplay } from '../../hooks/useVideoAutoplay';
 import { SITE_NAME } from '../../config/site';
+import { CinemaModeContext } from '../../providers/CinemaModeProvider';
 
 interface PlayerProps {
   streamKey: string;
-  cinemaMode?: boolean;
 }
 
 const Player = (props: PlayerProps) => {
+  const cinemaContext = useContext(CinemaModeContext);
+  if (!cinemaContext) {
+    throw new Error('Player must be used within a CinemaModeProvider');
+  }
+  const { cinemaMode, toggleCinemaMode } = cinemaContext;
+
   const apiPath = import.meta.env.VITE_API_PATH;
   const { streamKey } = props;
 
@@ -435,6 +442,10 @@ const Player = (props: PlayerProps) => {
                 onLayerSelect={setCurrentLayer}
               />
             )}
+            <RectangleStackIcon
+              className={cinemaMode ? 'text-brand' : 'text-white'}
+              onClick={toggleCinemaMode}
+            />
             <Square2StackIcon onClick={() => videoRef.current?.requestPictureInPicture()} />
             <ArrowsPointingOutIcon onClick={() => videoRef.current?.requestFullscreen()} />
           </div>
