@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# scripts/update-nix-hash.sh
 
 set -euo pipefail
 
