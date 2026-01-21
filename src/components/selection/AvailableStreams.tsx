@@ -2,14 +2,6 @@ import React, { useContext, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StatusContext, StatusResult } from '../../providers/StatusContext';
 
-interface VideoStream {
-  lastKeyFrameSeen: string;
-}
-
-interface StreamEntry {
-  streamKey: string;
-}
-
 const AvailableStreams = () => {
   const navigate = useNavigate();
 
@@ -53,7 +45,7 @@ const AvailableStreams = () => {
         {streams.map((e, i) => (
           <button
             key={i + '_' + e.streamKey}
-            className={`mt-2 py-2 px-4 bg-brand text-white font-semibold rounded-lg shadow-md hover:bg-brand-hover focus:outline-hidden focus:ring-2 focus:ring-brand/50`}
+            className="mt-2 py-2 px-4 bg-brand text-white font-semibold rounded-lg shadow-md hover:bg-brand-hover focus:outline-hidden focus:ring-2 focus:ring-brand/50"
             onClick={() => onWatchStreamClick(e.streamKey)}
           >
             {e.streamKey}

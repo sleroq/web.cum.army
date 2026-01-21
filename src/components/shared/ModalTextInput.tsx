@@ -36,7 +36,7 @@ export default function ModalTextInput<T extends string | number>(props: Props<T
           <p className="mb-2">{props.message}</p>
 
           <input
-            className="mb-6 appearance-none border w-full py-2 px-3 leading-tight focus:outline-hidden focus:shadow-outline bg-input border-gray-700 text-white rounded-sm shadow-md placeholder-gray-200"
+            className="mb-6 appearance-none border w-full py-2 px-3 leading-tight focus:outline-hidden focus:shadow-outline bg-input border-border text-foreground rounded-sm shadow-md placeholder-muted"
             type="text"
             ref={valueRef!}
             placeholder={`Insert the key you of the stream you want to add`}
@@ -55,7 +55,7 @@ export default function ModalTextInput<T extends string | number>(props: Props<T
             )}
             <button
               onClick={() => setIsOpen(false)}
-              className="bg-input hover:bg-surface text-white px-4 py-2 rounded"
+              className="bg-input hover:bg-surface text-foreground px-4 py-2 rounded"
             >
               Close
             </button>

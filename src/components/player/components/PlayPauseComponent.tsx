@@ -35,9 +35,19 @@ const PlayPauseComponent = ({ videoRef }: PlayPauseComponentProps) => {
   };
 
   if (isPaused) {
-    return <PlayIcon onClick={togglePlay} />;
+    return (
+      <PlayIcon
+        className="size-12! shrink-0 cursor-pointer text-brand transition-colors hover:text-brand-hover"
+        onClick={togglePlay}
+      />
+    );
   }
-  return <PauseIcon onClick={togglePlay} />;
+  return (
+    <PauseIcon
+      className="size-12! shrink-0 cursor-pointer text-brand transition-colors hover:text-brand-hover"
+      onClick={togglePlay}
+    />
+  );
 };
 
 export default PlayPauseComponent;

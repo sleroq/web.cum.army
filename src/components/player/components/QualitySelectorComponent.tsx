@@ -5,52 +5,58 @@ interface QualityComponentProps {
   layers: string[];
   layerEndpoint: string;
   hasPacketLoss: boolean;
+  currentLayer: string;
+  onLayerSelect: (layer: string) => void;
 }
 
 const QualitySelectorComponent = (props: QualityComponentProps) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [currentLayer, setCurrentLayer] = useState<string>('');
 
   const onLayerChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    const newLayer = event.target.value;
     fetch(props.layerEndpoint, {
       method: 'POST',
-      body: JSON.stringify({ mediaId: '1', encodingId: event.target.value }),
+      body: JSON.stringify({ mediaId: '1', encodingId: newLayer }),
       headers: {
         'Content-Type': 'application/json',
       },
     }).catch((err) => console.error('onLayerChange', err));
     setIsOpen(false);
-    setCurrentLayer(event.target.value);
+    props.onLayerSelect(newLayer);
   };
 
-  const layerList = [currentLayer, ...props.layers.filter((layer) => layer !== currentLayer)].map(
-    (layer) => {
-      if (layer === '') {
-        return (
-          <option key="disabled" value="disabled">
-            No Layer Selected
-          </option>
-        );
-      }
-      return (
-        <option key={`layerEncodingId_${layer}`} value={layer}>
-          {layer}
-        </option>
-      );
-    }
-  );
+  const layerList = [
+    { id: 'disabled', label: 'No Layer Selected', value: 'disabled' },
+    ...props.layers.map((layer, index) => ({
+      id: `layer-${index}-${layer}`,
+      label: layer,
+      value: layer,
+    })),
+  ].map((item) => (
+    <option key={item.id} value={item.value}>
+      {item.label}
+    </option>
+  ));
 
   return (
-    <div className="h-full flex">
-      <ChartBarIcon
-        className={props.hasPacketLoss ? 'text-orange-600' : ''}
+    <div className="flex items-center relative">
+      <button
+        type="button"
         onClick={() => setIsOpen((prev) => (props.layers.length <= 1 ? false : !prev))}
-      />
+        className={`p-1 rounded hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/50 ${
+          props.hasPacketLoss ? 'text-orange-600' : ''
+        }`}
+        aria-label="Quality Selector"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+      >
+        <ChartBarIcon className="size-7" />
+      </button>
 
       {isOpen && (
         <select
           onChange={onLayerChange}
-          value={currentLayer}
+          value={props.currentLayer}
           className="
 				absolute 
 				right-0

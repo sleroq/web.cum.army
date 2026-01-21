@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AvailableStreams from './AvailableStreams';
+import { SITE_NAME } from '../../config/site';
 
 const Frontpage = () => {
   const [streamType, setStreamType] = useState<'Watch' | 'Share'>('Watch');
@@ -23,29 +24,27 @@ const Frontpage = () => {
 
   return (
     <div className="space-y-4 mx-auto max-w-2xl pt-20 md:pt-24">
-      <div className="rounded-md bg-gray-800 shadow-md p-8">
+      <div className="rounded-md bg-surface shadow-md p-8">
         <div className="flex items-center gap-3 mb-2">
           <img
             src="/assets/images/icon.png"
-            alt="Web Cum Streaming"
+            alt={SITE_NAME}
             width={32}
             height={32}
             className="rounded"
           />
-          <h2 className="font-light leading-tight text-4xl mt-0">Welcome to Web Cum Streaming</h2>
+          <h2 className="font-light leading-tight text-4xl mt-0">Welcome to {SITE_NAME}</h2>
         </div>
-        <p>
-          Web Cum Streaming lets you stream and watch low-latency video in real time using WebRTC.
-        </p>
+        <p>{SITE_NAME} lets you stream and watch low-latency video in real time using WebRTC.</p>
 
         <div className="flex rounded-md shadow-xs justify-center mt-6" role="group">
           <button
             type="button"
             onClick={() => setStreamType('Watch')}
-            className={`flex items-center px-4 py-2 text-sm font-medium border border-gray-200 rounded-s-lg hover:text-brand dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-brand dark:focus:ring-brand/40 dark:focus:text-white ${streamType === 'Watch' ? 'bg-brand' : ''}`}
+            className={`flex items-center px-4 py-2 text-sm font-medium border border-border rounded-s-lg hover:bg-brand-hover hover:text-white focus:ring-brand/40 focus:text-white ${streamType === 'Watch' ? 'bg-brand text-white' : 'text-foreground'}`}
           >
             <svg
-              className="w-6 h-6 text-gray-800 dark:text-white"
+              className={`w-6 h-6 ${streamType === 'Watch' ? 'text-white' : 'text-foreground'}`}
               aria-hidden="true"
               xmlns="http://www.w3.org/2000/svg"
               width="24"
@@ -65,10 +64,10 @@ const Frontpage = () => {
           <button
             type="button"
             onClick={() => setStreamType('Share')}
-            className={`flex items-center px-4 py-2 text-sm font-medium border border-gray-200 rounded-e-lg hover:text-brand dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-brand dark:focus:ring-brand/40 dark:focus:text-white ${streamType === 'Share' ? 'bg-brand' : ''}`}
+            className={`flex items-center px-4 py-2 text-sm font-medium border border-border rounded-e-lg hover:bg-brand-hover hover:text-white focus:ring-brand/40 focus:text-white ${streamType === 'Share' ? 'bg-brand text-white' : 'text-foreground'}`}
           >
             <svg
-              className="w-6 h-6 text-gray-800 dark:text-white"
+              className={`w-6 h-6 ${streamType === 'Share' ? 'text-white' : 'text-foreground'}`}
               aria-hidden="true"
               xmlns="http://www.w3.org/2000/svg"
               width="24"
@@ -94,7 +93,7 @@ const Frontpage = () => {
           </label>
 
           <input
-            className="mb-2 appearance-none border w-full py-2 px-3 leading-tight focus:outline-hidden focus:shadow-outline bg-gray-700 border-gray-700 text-white rounded-sm shadow-md placeholder-gray-200"
+            className="mb-2 appearance-none border w-full py-2 px-3 leading-tight focus:outline-hidden focus:shadow-outline bg-input border-border text-foreground rounded-sm shadow-md placeholder-muted"
             id="streamKey"
             placeholder={`Insert the key you of the stream you want to ${streamType === 'Share' ? 'share' : 'join'}`}
             type="text"
@@ -109,7 +108,7 @@ const Frontpage = () => {
           />
 
           <button
-            className={`py-2 px-4 ${streamKey.length === 0 ? 'bg-gray-700' : 'bg-brand'} text-white font-semibold rounded-lg shadow-md ${streamKey.length === 0 ? 'hover:bg-gray-600' : 'hover:bg-brand-hover'} focus:outline-hidden focus:ring-2 focus:ring-brand/50`}
+            className={`py-2 px-4 ${streamKey.length === 0 ? 'bg-input text-muted' : 'bg-brand text-white'} font-semibold rounded-lg shadow-md ${streamKey.length === 0 ? 'hover:bg-surface' : 'hover:bg-brand-hover'} focus:outline-hidden focus:ring-2 focus:ring-brand/50`}
             disabled={streamKey.length === 0}
             type="button"
             onClick={onStreamClick}

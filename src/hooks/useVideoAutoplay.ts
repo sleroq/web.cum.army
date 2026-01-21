@@ -1,5 +1,10 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 
+const setMutedAndPlay = async (video: HTMLVideoElement, muted: boolean) => {
+  video.muted = muted;
+  await video.play();
+};
+
 interface UseVideoAutoplayOptions {
   preferSound?: boolean;
   maxRetries?: number;
@@ -15,6 +20,8 @@ export const useVideoAutoplay = (
   const [showPlayButton, setShowPlayButton] = useState(false);
   const retryCountRef = useRef(0);
   const currentRetryTimeoutRef = useRef<number | undefined>(undefined);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const attemptPlayRef = useRef<any>(null);
 
   const attemptPlay = useCallback(async (): Promise<boolean> => {
     const video = videoRef.current;
@@ -33,8 +40,7 @@ export const useVideoAutoplay = (
 
     try {
       // Try with preferred sound setting
-      video.muted = !preferSound;
-      await video.play();
+      await setMutedAndPlay(video, !preferSound);
 
       // Wait a bit to ensure it actually starts playing
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -48,9 +54,8 @@ export const useVideoAutoplay = (
       // If we prefer sound and this is our first attempt, try muted
       if (preferSound && retryCountRef.current === 0) {
         retryCountRef.current++;
-        video.muted = true;
         try {
-          await video.play();
+          await setMutedAndPlay(video, true);
           await new Promise((resolve) => setTimeout(resolve, 100));
           if (!video.paused) {
             setShowPlayButton(false);
@@ -72,26 +77,7 @@ export const useVideoAutoplay = (
         const delay = retryDelays[retryCountRef.current];
         currentRetryTimeoutRef.current = window.setTimeout(() => {
           retryCountRef.current++;
-          // Call the actual function recursively
-          (async () => {
-            const video = videoRef.current;
-            if (!video) return;
-
-            try {
-              video.muted = !preferSound;
-              await video.play();
-              await new Promise((resolve) => setTimeout(resolve, 100));
-
-              if (!video.paused) {
-                setShowPlayButton(false);
-                retryCountRef.current = 0;
-              }
-            } catch {
-              if (retryCountRef.current >= maxRetries - 1) {
-                setShowPlayButton(true);
-              }
-            }
-          })();
+          attemptPlayRef.current?.();
         }, delay);
       }
 
@@ -100,6 +86,10 @@ export const useVideoAutoplay = (
 
     return false;
   }, [preferSound, maxRetries, retryDelays, videoRef]);
+
+  useEffect(() => {
+    attemptPlayRef.current = attemptPlay;
+  }, [attemptPlay]);
 
   const handlePlayButtonClick = useCallback(async () => {
     const success = await attemptPlay();

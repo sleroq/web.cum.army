@@ -15,7 +15,7 @@ const PlayerPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="bg-background text-foreground">
       {isModalOpen && (
         <ModalTextInput<string>
           title="Add stream"
@@ -31,9 +31,13 @@ const PlayerPage = () => {
         <div className="flex flex-col items-center gap-6 md:gap-8">
           <div className="w-full max-w-[1200px] flex items-baseline justify-between">
             <h1 className="text-xl md:text-2xl font-semibold tracking-tight">
-              Player <span className="text-brand">•</span>
+              Welcome to{' '}
+              <code className="font-mono bg-foreground/10 px-1.5 py-0.5 rounded text-brand-hover">
+                {streamKeys[0]}
+              </code>{' '}
+              stream <span className="text-brand">•</span>
             </h1>
-            <span className="text-sm text-white/60">
+            <span className="text-sm text-muted">
               {streamKeys.length} stream{streamKeys.length === 1 ? '' : 's'}
             </span>
           </div>
@@ -48,7 +52,7 @@ const PlayerPage = () => {
             {streamKeys.map((streamKey) => (
               <div
                 key={`${streamKey}_frame`}
-                className="rounded-xl overflow-hidden bg-surface ring-1 ring-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
+                className="rounded-xl overflow-hidden bg-surface ring-1 ring-border shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
               >
                 <Player streamKey={streamKey} />
               </div>
@@ -61,7 +65,7 @@ const PlayerPage = () => {
               <button
                 className={
                   'px-4 py-2 text-sm ' +
-                  'rounded-lg font-semibold bg-white/10 hover:bg-white/15 border border-white/10 text-white ' +
+                  'rounded-lg font-semibold bg-foreground/10 hover:bg-foreground/15 border border-border text-foreground ' +
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 ' +
                   'focus-visible:ring-offset-2 focus-visible:ring-offset-background'
                 }

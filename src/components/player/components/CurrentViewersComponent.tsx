@@ -24,8 +24,8 @@ const CurrentViewersComponent = ({ streamKey }: CurrentViewersComponentProps) =>
   }, [streamKey, streamStatus]);
 
   return (
-    <div className={'flex flex-row items-center gap-1'}>
-      <UsersIcon className={'size-4'} />
+    <div className={'flex flex-row items-center gap-1 text-xs font-medium whitespace-nowrap'}>
+      <UsersIcon className={'size-3.5!'} />
       {currentViewersCount}
     </div>
   );

@@ -11,7 +11,7 @@ const PlayerHeader = (props: PlayerHeaderProps) => {
       className={`
 		${props.headerType === 'Error' && 'bg-red-700'}
 		${props.headerType === 'Warning' && 'bg-orange-500'}
-		${props.headerType === 'Success' && 'bg-green-500'}
+		${props.headerType === 'Success' && 'bg-brand'}
 		text-white 
 		text-lg 
 		text-center

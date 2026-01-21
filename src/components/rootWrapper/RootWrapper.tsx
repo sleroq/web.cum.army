@@ -1,30 +1,46 @@
 import { Link, Outlet } from 'react-router-dom';
 import React from 'react';
+import { Cog6ToothIcon } from '@heroicons/react/24/solid';
+import { useSettings } from '../../providers/SettingsContext';
+import SettingsModal from '../shared/SettingsModal';
+import { SITE_NAME } from '../../config/site';
 
 const RootWrapper = () => {
+  const { setSettingsOpen } = useSettings();
+
   return (
-    <div>
-      <nav className="bg-surface border-b border-white/10 mt-0 fixed w-full z-100 top-0">
+    <div className="min-h-screen flex flex-col">
+      <nav className="bg-surface border-b border-border mt-0 fixed w-full z-100 top-0">
         <div className="mx-auto max-w-[1400px] px-4 md:px-8 h-12 flex items-center">
-          <Link to="/" className="flex items-center gap-2 text-white">
+          <Link to="/" className="flex items-center gap-2 text-foreground">
             <img
               src="/assets/images/icon.png"
-              alt="Web Cum Streaming"
+              alt={SITE_NAME}
               width={32}
               height={32}
               className="rounded"
             />
-            <span className="font-bold leading-tight text-2xl">Web Cum Streaming</span>
+            <span className="font-bold leading-tight text-2xl">{SITE_NAME}</span>
           </Link>
+
+          <button
+            onClick={() => setSettingsOpen(true)}
+            className="ml-auto p-2 text-muted hover:text-foreground transition-colors rounded-full hover:bg-foreground/10"
+            aria-label="Settings"
+          >
+            <Cog6ToothIcon className="h-6 w-6" />
+          </button>
         </div>
       </nav>
 
-      <main className="pt-12 md:pt-12">
+      <SettingsModal />
+
+      <main className="pt-12 md:pt-12 grow">
         <Outlet />
       </main>
 
       <footer className="mx-auto px-2 container py-6">
-        <ul className="flex items-center justify-center mt-3 text-sm:mt-0 space-x-4">
+        <ul className="flex items-center justify-center mt-3 sm:mt-0 space-x-4">
           <li>
             <a href="https://cum.army" className="hover:underline">
               Contact

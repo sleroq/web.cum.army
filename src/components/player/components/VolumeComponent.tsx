@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { SpeakerWaveIcon, SpeakerXMarkIcon } from '@heroicons/react/16/solid';
 
 interface VolumeComponentProps {
@@ -7,20 +7,15 @@ interface VolumeComponentProps {
   onVolumeChanged: (value: number) => void;
 }
 
-const VolumeComponent = ({ isMuted: propIsMuted, onStateChanged, onVolumeChanged }: VolumeComponentProps) => {
-  const [isMuted, setIsMuted] = useState<boolean>(propIsMuted);
+const VolumeComponent = ({ isMuted, onStateChanged, onVolumeChanged }: VolumeComponentProps) => {
   const [showSlider, setShowSlider] = useState<boolean>(false);
-
-  useEffect(() => {
-    onStateChanged(isMuted);
-  }, [isMuted, onStateChanged]);
 
   const onVolumeChange = (newValue: number) => {
     if (isMuted && newValue !== 0) {
-      setIsMuted(false);
+      onStateChanged(false);
     }
     if (!isMuted && newValue === 0) {
-      setIsMuted(true);
+      onStateChanged(true);
     }
 
     onVolumeChanged(newValue / 100);
@@ -32,8 +27,8 @@ const VolumeComponent = ({ isMuted: propIsMuted, onStateChanged, onVolumeChanged
       onMouseLeave={() => setShowSlider(false)}
       className="flex justify-start max-w-42 gap-2 items-center"
     >
-      {isMuted && <SpeakerXMarkIcon className="w-5" onClick={() => setIsMuted((prev) => !prev)} />}
-      {!isMuted && <SpeakerWaveIcon className="w-5" onClick={() => setIsMuted((prev) => !prev)} />}
+      {isMuted && <SpeakerXMarkIcon onClick={() => onStateChanged(!isMuted)} />}
+      {!isMuted && <SpeakerWaveIcon onClick={() => onStateChanged(!isMuted)} />}
       <input
         id="default-range"
         type="range"

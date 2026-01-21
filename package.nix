@@ -26,7 +26,7 @@ buildNpmPackage {
     fi
   '';
 
-  npmDepsHash = "sha256-wZ5OSOyZNXl79O/saPpFaaHfhyY2u4yO1gf4KfDsiYE=";
+  npmDepsHash = "sha256-BxhPPftuPLwWbe5XY5OHFobYAn+v29Nn/WcnLuh7Tfo=";
 
   installPhase = ''
     runHook preInstall

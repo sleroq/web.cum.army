@@ -11,19 +11,17 @@ const Statistics = () => {
   }, [refreshStatus]);
 
   return (
-    <div className="p-6 min-h-screen">
+    <div className="p-6">
       <h2 className="text-4xl font-semibold mb-4">📊 Statistics</h2>
 
       {!streamStatus ||
         (streamStatus?.length === 0 && (
-          <p className="text-center text-gray-500 mt-10 text-3xl">
-            No statistics currently available
-          </p>
+          <p className="text-center text-muted mt-10 text-3xl">No statistics currently available</p>
         ))}
 
       <div className="space-y-6">
         {streamStatus?.map((status, i) => (
-          <div key={i} className="border border-gray-300 rounded-lg p-4 shadow-sm ">
+          <div key={i} className="border border-border rounded-lg p-4 shadow-sm ">
             <div className="text-lg font-medium text-brand m-0 flex flex-row justify-between content-center">
               <div className="px-4 py-2 rounded-lg ">Stream Key: {status.streamKey}</div>
               <button

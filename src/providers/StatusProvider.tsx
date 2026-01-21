@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StatusContext, StatusResult, StatusProviderContextProps } from './StatusContext';
 
 interface StatusProviderProps {
@@ -43,17 +43,18 @@ export function StatusProvider(props: StatusProviderProps) {
   const [streamStatus, setStreamStatus] = useState<StatusResult[] | undefined>(undefined);
   const intervalCountRef = useRef<number>(5000);
 
-  const fetchStatusResultHandler = (result: StatusResult[]) => {
+  const fetchStatusResultHandler = useCallback((result: StatusResult[]) => {
     setStreamStatus(result);
-  };
-  const fetchStatusErrorHandler = (error: FetchError) => {
+  }, []);
+
+  const fetchStatusErrorHandler = useCallback((error: FetchError) => {
     console.error('StatusProviderError', error.status, error.message);
 
     if (error.status === 503) {
       setIsStatusActive(false);
       setStreamStatus(undefined);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchStatus(
@@ -83,16 +84,18 @@ export function StatusProvider(props: StatusProviderProps) {
 
     const interval = setInterval(intervalHandler, intervalCountRef.current);
     return () => clearInterval(interval);
-  }, [isStatusActive]);
+  }, [isStatusActive, fetchStatusResultHandler, fetchStatusErrorHandler]);
+
+  const refreshStatus = useCallback(async () => {
+    await fetchStatus(fetchStatusResultHandler, fetchStatusErrorHandler);
+  }, [fetchStatusResultHandler, fetchStatusErrorHandler]);
 
   const state = useMemo<StatusProviderContextProps>(
     () => ({
       streamStatus: streamStatus,
-      refreshStatus: async () => {
-        await fetchStatus(fetchStatusResultHandler, fetchStatusErrorHandler);
-      },
+      refreshStatus: refreshStatus,
     }),
-    [streamStatus]
+    [streamStatus, refreshStatus]
   );
 
   return <StatusContext.Provider value={state}>{props.children}</StatusContext.Provider>;

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import PlayerHeader from '../playerHeader/PlayerHeader';
 import { StatusContext } from '../../providers/StatusContext';
 import { UsersIcon } from '@heroicons/react/20/solid';
+import { SITE_NAME } from '../../config/site';
 
 const mediaOptions = {
   audio: true,
@@ -22,7 +23,7 @@ enum ErrorMessageEnum {
 function getMediaErrorMessage(value: ErrorMessageEnum): string {
   switch (value) {
     case ErrorMessageEnum.NoMediaDevices:
-      return `MediaDevices API was not found. Publishing in Broadcast Box requires HTTPS 👮`;
+      return `MediaDevices API was not found. Publishing in ${SITE_NAME} requires HTTPS 👮`;
     case ErrorMessageEnum.NotFoundError:
       return `Seems like you don't have camera 😭 Or you just blocked access to it...\nCheck camera settings, browser permissions and system permissions.`;
     case ErrorMessageEnum.NotAllowedError:
@@ -65,17 +66,11 @@ function BrowserBroadcaster() {
   };
 
   useEffect(() => {
-    peerConnectionRef.current = new RTCPeerConnection();
-
-    return () => peerConnectionRef.current?.close();
-  }, []);
-
-
-
-  useEffect(() => {
-    if (useDisplayMedia === 'None' || !peerConnectionRef.current) {
+    if (useDisplayMedia === 'None') {
       return;
     }
+
+    peerConnectionRef.current = new RTCPeerConnection();
 
     let stream: MediaStream | undefined = undefined;
 
@@ -162,7 +157,7 @@ function BrowserBroadcaster() {
           })
             .then((r) => {
               setConnectFailed(r.status !== 201);
-              if (connectFailed) {
+              if (r.status !== 201) {
                 throw new DOMException('WHIP endpoint did not return 201');
               }
 
@@ -175,7 +170,8 @@ function BrowserBroadcaster() {
                   type: 'answer',
                 })
                 .catch((err) => console.error('SetRemoveDescription', err));
-            });
+            })
+            .catch((err) => console.error('WHIP Error', err));
         });
       },
       (reason: ErrorMessageEnum) => {
@@ -230,70 +226,93 @@ function BrowserBroadcaster() {
   }, [hasSignal]);
 
   return (
-    <div className="container mx-auto">
-      {mediaAccessError != null && (
-        <PlayerHeader headerType={'Error'}> {getMediaErrorMessage(mediaAccessError)} </PlayerHeader>
-      )}
-      {peerConnectionDisconnected && (
-        <PlayerHeader headerType={'Error'}>
-          {' '}
-          WebRTC has disconnected or failed to connect at all 😭{' '}
-        </PlayerHeader>
-      )}
-      {connectFailed && (
-        <PlayerHeader headerType={'Error'}> Failed to start Broadcast Box session 👮 </PlayerHeader>
-      )}
-      {hasPacketLoss && (
-        <PlayerHeader headerType={'Warning'}> WebRTC is experiencing packet loss</PlayerHeader>
-      )}
-      {publishSuccess && (
-        <PlayerHeader headerType={'Success'}>
-          {' '}
-          Live: Currently streaming to{' '}
-          <a
-            href={window.location.href.replace('publish/', '')}
-            target="_blank"
-            rel="noreferrer"
-            className="hover:underline"
-          >
-            {window.location.href.replace('publish/', '')}
-          </a>{' '}
-        </PlayerHeader>
-      )}
+    <div className="mx-auto max-w-[1400px] px-4 md:px-8 py-6 md:py-10">
+      <div className="flex flex-col items-center gap-6 md:gap-8">
+        <div className="w-full max-w-[1200px] flex items-baseline justify-between">
+          <h1 className="text-xl md:text-2xl font-semibold tracking-tight">
+            Broadcasting{' '}
+            <code className="font-mono bg-foreground/10 px-1.5 py-0.5 rounded text-brand-hover">
+              {streamKey}
+            </code>{' '}
+            <span className="text-brand">•</span>
+          </h1>
+        </div>
 
-      <video ref={videoRef} autoPlay muted controls playsInline className="w-full h-full" />
+        {mediaAccessError != null && (
+          <PlayerHeader headerType={'Error'}>
+            {' '}
+            {getMediaErrorMessage(mediaAccessError)}{' '}
+          </PlayerHeader>
+        )}
+        {peerConnectionDisconnected && (
+          <PlayerHeader headerType={'Error'}>
+            {' '}
+            WebRTC has disconnected or failed to connect at all 😭{' '}
+          </PlayerHeader>
+        )}
+        {connectFailed && (
+          <PlayerHeader headerType={'Error'}>
+            {' '}
+            Failed to start ${SITE_NAME} session 👮{' '}
+          </PlayerHeader>
+        )}
+        {hasPacketLoss && (
+          <PlayerHeader headerType={'Warning'}> WebRTC is experiencing packet loss</PlayerHeader>
+        )}
+        {publishSuccess && (
+          <PlayerHeader headerType={'Success'}>
+            {' '}
+            Live: Currently streaming to{' '}
+            <a
+              href={window.location.href.replace('publish/', '')}
+              target="_blank"
+              rel="noreferrer"
+              className="hover:underline"
+            >
+              {window.location.href.replace('publish/', '')}
+            </a>{' '}
+          </PlayerHeader>
+        )}
 
-      <div className={'justify-items-end'}>
-        <div className={'flex flex-row items-center'}>
-          <UsersIcon className={'size-4'} />
-          {currentViewersCount}
+        <div className="w-full max-w-[1200px] rounded-xl overflow-hidden bg-surface ring-1 ring-border shadow-[0_20px_60px_rgba(0,0,0,0.55)]">
+          <video ref={videoRef} autoPlay muted controls playsInline className="w-full h-full" />
+        </div>
+
+        <div className="w-full max-w-[1200px] flex flex-col gap-4">
+          <div className="flex justify-end">
+            <div className="flex flex-row items-center gap-1 text-sm text-muted">
+              <UsersIcon className="size-4" />
+              {currentViewersCount}
+            </div>
+          </div>
+
+          <div className="flex flex-row gap-2">
+            <button
+              onClick={() => setUseDisplayMedia('Screen')}
+              className="appearance-none border w-full py-2 px-3 leading-tight focus:outline-hidden focus:shadow-outline bg-brand hover:bg-brand-hover border-border text-white rounded-lg shadow-md placeholder-muted font-semibold"
+            >
+              Publish Screen/Window/Tab
+            </button>
+            <button
+              onClick={() => setUseDisplayMedia('Webcam')}
+              className="appearance-none border w-full py-2 px-3 leading-tight focus:outline-hidden focus:shadow-outline bg-brand hover:bg-brand-hover border-border text-white rounded-lg shadow-md placeholder-muted font-semibold"
+            >
+              Publish Webcam
+            </button>
+          </div>
+
+          {publishSuccess && (
+            <div>
+              <button
+                onClick={endStream}
+                className="appearance-none border w-full py-2 px-3 leading-tight focus:outline-hidden focus:shadow-outline bg-surface hover:bg-input border-border text-foreground rounded-lg shadow-md placeholder-muted font-semibold"
+              >
+                End stream
+              </button>
+            </div>
+          )}
         </div>
       </div>
-      <div className="flex flex-row gap-2">
-        <button
-          onClick={() => setUseDisplayMedia('Screen')}
-          className="appearance-none border w-full mt-5 py-2 px-3 leading-tight focus:outline-hidden focus:shadow-outline bg-brand hover:bg-brand-hover border-gray-700 text-white rounded-sm shadow-md placeholder-gray-200"
-        >
-          Publish Screen/Window/Tab
-        </button>
-        <button
-          onClick={() => setUseDisplayMedia('Webcam')}
-          className="appearance-none border w-full mt-5 py-2 px-3 leading-tight focus:outline-hidden focus:shadow-outline bg-brand hover:bg-brand-hover border-gray-700 text-white rounded-sm shadow-md placeholder-gray-200"
-        >
-          Publish Webcam
-        </button>
-      </div>
-
-      {publishSuccess && (
-        <div>
-          <button
-            onClick={endStream}
-            className="appearance-none border w-full mt-5 py-2 px-3 leading-tight focus:outline-hidden focus:shadow-outline bg-red-900 hover:bg-red-800 border-gray-700 text-white rounded-sm shadow-md placeholder-gray-200"
-          >
-            End stream
-          </button>
-        </div>
-      )}
     </div>
   );
 }
