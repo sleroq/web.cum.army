@@ -17,6 +17,15 @@ buildNpmPackage {
 
   npmBuildScript = "build";
 
+  preBuild = ''
+    # Load environment variables from .env file
+    if [ -f .env ]; then
+      set -a
+      source .env
+      set +a
+    fi
+  '';
+
   npmDepsHash = "sha256-wZ5OSOyZNXl79O/saPpFaaHfhyY2u4yO1gf4KfDsiYE=";
 
   installPhase = ''
