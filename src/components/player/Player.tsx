@@ -383,10 +383,11 @@ const Player = (props: PlayerProps) => {
         onDoubleClick={handleVideoPlayerDoubleClick}
         className={`
 					absolute
-					rounded-md
+					${!cinemaMode ? 'rounded-md' : ''}
 					w-full
 					h-full
 					z-10
+					transition-all duration-300
 					${!hasSignal && 'bg-surface'}
 					${
             hasSignal &&
@@ -398,18 +399,18 @@ const Player = (props: PlayerProps) => {
       >
         {/*Opaque background*/}
         <div
-          className={`absolute w-full bg-background ${!hasSignal ? 'opacity-40' : 'opacity-0'} h-full`}
+          className={`absolute w-full bg-background ${!hasSignal ? 'opacity-40' : 'opacity-0'} h-full ${!cinemaMode ? 'rounded-md' : ''}`}
         />
 
         {/*Buttons */}
         <div className="absolute bottom-0 w-full flex z-20">
           <div
             onClick={(e) => e.stopPropagation()}
-            className={`bg-surface/60 backdrop-blur-md transition-opacity duration-500 ${
+            className={`bg-surface/60 backdrop-blur-md transition-all duration-500 ${
               hasSignal && !videoOverlayVisible
                 ? 'opacity-0 pointer-events-none'
                 : 'opacity-100 pointer-events-auto'
-            } text-white w-full flex flex-row items-center gap-3 rounded-b-md px-3 min-h-12 max-h-12 border-t border-white/10 [&_svg]:cursor-pointer [&_svg]:size-7!`}
+            } text-white w-full flex flex-row items-center gap-3 ${!cinemaMode ? 'rounded-b-md' : ''} px-3 min-h-12 max-h-12 border-t border-white/10 [&_svg]:cursor-pointer [&_svg]:size-7!`}
           >
             <PlayPauseComponent videoRef={videoRef} />
 
@@ -504,7 +505,7 @@ const Player = (props: PlayerProps) => {
         autoPlay
         muted
         playsInline
-        className="bg-transparent rounded-md w-full aspect-video relative block object-contain"
+        className={`bg-transparent ${!cinemaMode ? 'rounded-md' : ''} w-full aspect-video relative block object-contain transition-all duration-300`}
       />
     </div>
   );
