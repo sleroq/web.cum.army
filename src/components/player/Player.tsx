@@ -138,6 +138,7 @@ const Player = (props: PlayerProps) => {
     const handleMouseEnter = () => handleOverlayTimer(true);
     const handleMouseLeave = () => handleOverlayTimer(false);
     const handleMouseUp = () => handleOverlayTimer(true);
+    const handleTouchStart = () => handleOverlayTimer(true);
 
     const player = document.getElementById(streamVideoPlayerId);
 
@@ -145,6 +146,7 @@ const Player = (props: PlayerProps) => {
     player?.addEventListener('mouseenter', handleMouseEnter);
     player?.addEventListener('mouseleave', handleMouseLeave);
     player?.addEventListener('mouseup', handleMouseUp);
+    player?.addEventListener('touchstart', handleTouchStart, { passive: true });
 
     window.addEventListener('beforeunload', handleWindowBeforeUnload);
 
@@ -186,6 +188,7 @@ const Player = (props: PlayerProps) => {
       player?.removeEventListener('mouseleave', handleMouseLeave);
       player?.removeEventListener('mousemove', handleMouseMove);
       player?.removeEventListener('mouseup', handleMouseUp);
+      player?.removeEventListener('touchstart', handleTouchStart);
 
       window.removeEventListener('beforeunload', handleWindowBeforeUnload);
 
@@ -433,20 +436,22 @@ const Player = (props: PlayerProps) => {
               hasSignal && !videoOverlayVisible
                 ? 'opacity-0 pointer-events-none'
                 : 'opacity-100 pointer-events-auto'
-            } text-white w-full flex flex-row items-center gap-3 ${!cinemaMode ? 'rounded-b-md' : ''} px-3 min-h-12 max-h-12 border-t border-white/10 [&_svg]:cursor-pointer [&_svg]:size-7!`}
+            } text-white w-full flex flex-row items-center gap-1.5 sm:gap-3 ${!cinemaMode ? 'rounded-b-md' : ''} px-2 sm:px-3 min-h-10 max-h-10 sm:min-h-12 sm:max-h-12 border-t border-white/10 [&_svg]:cursor-pointer [&_svg]:size-6! sm:[&_svg]:size-7!`}
           >
             <PlayPauseComponent videoRef={videoRef} />
 
-            <VolumeComponent
-              isMuted={isMuted}
-              onVolumeChanged={(newValue) => {
-                if (videoRef.current) videoRef.current.volume = newValue;
-              }}
-              onStateChanged={(newState) => {
-                setIsMuted(newState);
-                if (videoRef.current) videoRef.current.muted = newState;
-              }}
-            />
+            <div className="hidden sm:flex">
+              <VolumeComponent
+                isMuted={isMuted}
+                onVolumeChanged={(newValue) => {
+                  if (videoRef.current) videoRef.current.volume = newValue;
+                }}
+                onStateChanged={(newState) => {
+                  setIsMuted(newState);
+                  if (videoRef.current) videoRef.current.muted = newState;
+                }}
+              />
+            </div>
 
             <div className="flex-1"></div>
 
@@ -466,15 +471,19 @@ const Player = (props: PlayerProps) => {
                 onLayerSelect={setCurrentLayer}
               />
             )}
-            <Tooltip text="Cinema Mode">
-              <RectangleStackIcon
-                className={cinemaMode ? 'text-brand' : 'text-white'}
-                onClick={toggleCinemaMode}
-              />
-            </Tooltip>
-            <Tooltip text="Picture-in-Picture">
-              <Square2StackIcon onClick={() => videoRef.current?.requestPictureInPicture()} />
-            </Tooltip>
+            <div className="hidden sm:block">
+              <Tooltip text="Cinema Mode">
+                <RectangleStackIcon
+                  className={cinemaMode ? 'text-brand' : 'text-white'}
+                  onClick={toggleCinemaMode}
+                />
+              </Tooltip>
+            </div>
+            <div className="hidden sm:block">
+              <Tooltip text="Picture-in-Picture">
+                <Square2StackIcon onClick={() => videoRef.current?.requestPictureInPicture()} />
+              </Tooltip>
+            </div>
             <Tooltip text="Fullscreen">
               <ArrowsPointingOutIcon onClick={() => videoRef.current?.requestFullscreen()} />
             </Tooltip>

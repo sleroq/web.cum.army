@@ -39,7 +39,7 @@ const PlayPauseComponent = ({ videoRef }: PlayPauseComponentProps) => {
     return (
       <Tooltip text="Play">
         <PlayIcon
-          className="size-12! shrink-0 cursor-pointer text-brand transition-colors hover:text-brand-hover"
+          className="shrink-0 cursor-pointer text-brand transition-colors hover:text-brand-hover"
           onClick={togglePlay}
         />
       </Tooltip>
@@ -48,7 +48,7 @@ const PlayPauseComponent = ({ videoRef }: PlayPauseComponentProps) => {
   return (
     <Tooltip text="Pause">
       <PauseIcon
-        className="size-12! shrink-0 cursor-pointer text-brand transition-colors hover:text-brand-hover"
+        className="shrink-0 cursor-pointer text-brand transition-colors hover:text-brand-hover"
         onClick={togglePlay}
       />
     </Tooltip>

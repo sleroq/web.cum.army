@@ -63,7 +63,8 @@ const QualitySelectorComponent = (props: QualityComponentProps) => {
           className="
 				absolute 
 				right-0
-				bottom-12
+				bottom-10
+				sm:bottom-12
 				w-50
 				appearance-none
 				border
