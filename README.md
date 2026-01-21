@@ -11,7 +11,6 @@ This is a fork of the web player for [broadcast-box](https://github.com/glimesh/
 - **Consistent Design**: Unified UI components across the entire application.
 - **Stream Auto-play**: Streams attempt to play automatically by default, with smart retry logic and muted fallback if needed.
 - **Modern Tech Stack**: Updated to React 19, Vite 7, and Tailwind CSS v4. Includes React Compiler for better performance and strict linting/formatting rules.
-- **Simplified Experience**: Removed unnecessary features like cinema mode to keep the focus on the content.
 
 ## General Features
 
