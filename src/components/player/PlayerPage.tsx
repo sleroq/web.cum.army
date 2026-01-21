@@ -70,8 +70,10 @@ const PlayerPage = () => {
             {streamKeys.map((streamKey, index) => (
               <div
                 key={`${streamKey}_frame`}
-                className={`rounded-xl overflow-hidden bg-surface ring-1 ring-border shadow-[0_20px_60px_rgba(0,0,0,0.55)] ${
-                  cinemaMode ? 'rounded-none ring-0 shadow-none' : ''
+                className={`overflow-hidden bg-surface transition-all duration-300 ${
+                  cinemaMode
+                    ? 'rounded-none ring-0 shadow-none'
+                    : 'rounded-xl ring-1 ring-border shadow-[0_20px_60px_rgba(0,0,0,0.55)]'
                 }`}
               >
                 <Player

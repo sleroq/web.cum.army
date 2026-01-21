@@ -374,7 +374,9 @@ const Player = (props: PlayerProps) => {
   return (
     <div id={streamVideoPlayerId} className="block w-full relative z-0">
       {connectFailed && (
-        <p className="bg-red-700 text-white text-lg text-center p-4 rounded-t-lg whitespace-pre-wrap">
+        <p
+          className={`bg-red-700 text-white text-lg text-center p-4 ${!cinemaMode ? 'rounded-t-lg' : ''} whitespace-pre-wrap`}
+        >
           Failed to start ${SITE_NAME} session 👮{' '}
         </p>
       )}
