@@ -6,6 +6,7 @@ import { SITE_NAME } from '../../config/site';
 const Frontpage = () => {
   const [streamType, setStreamType] = useState<'Watch' | 'Share'>('Watch');
   const [streamKey, setStreamKey] = useState('');
+  const [showObsInstructions, setShowObsInstructions] = useState(false);
   const navigate = useNavigate();
 
   const onStreamClick = () => {
@@ -116,6 +117,63 @@ const Frontpage = () => {
             {streamType === 'Share' ? 'Start stream' : 'Join stream'}
           </button>
         </div>
+
+        {streamType === 'Share' && (
+          <div className="mt-8 border border-border rounded-md bg-input/30 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setShowObsInstructions(!showObsInstructions)}
+              className="w-full flex items-center justify-between p-4 hover:bg-input/50 transition-colors"
+            >
+              <h3 className="text-lg font-bold">You can stream with OBS as well</h3>
+              <svg
+                className={`w-6 h-6 transition-transform ${showObsInstructions ? 'rotate-180' : ''}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
+            {showObsInstructions && (
+              <div className="p-6 pt-0 space-y-4 text-sm border-t border-border/50">
+                <br />
+                <ol className="list-decimal list-inside space-y-2 ml-2">
+                  <li>
+                    Open <strong>Settings</strong> in OBS
+                  </li>
+                  <li>
+                    Navigate to the <strong>Stream</strong> tab
+                  </li>
+                  <li>
+                    Select <strong>WHIP</strong> as the Service
+                  </li>
+                  <li>
+                    Set Server to:{' '}
+                    <code className="bg-input px-1 rounded">
+                      {import.meta.env.VITE_API_PATH}/whip
+                    </code>
+                  </li>
+                  <li>
+                    Use your Stream Key as the <strong>Bearer Token</strong>
+                  </li>
+                </ol>
+                <div className="mt-4">
+                  <img
+                    src="/assets/images/obs-settings.png"
+                    alt="OBS WHIP Settings"
+                    className="rounded-md border border-border w-full shadow-sm"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         <AvailableStreams />
       </div>
