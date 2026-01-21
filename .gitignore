@@ -1,4 +1,5 @@
 /node_modules/
 /build/
 /result
-/.env
+/.env.*
+!/.env.example
