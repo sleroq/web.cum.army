@@ -143,7 +143,7 @@ const ChatPanel = ({ streamKey, variant = 'sidebar', isOpen }: ChatPanelProps) =
                   {new Date(m.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </span>
               </div>
-              <p className="text-sm text-foreground break-words">{m.text}</p>
+              <p className="text-sm text-foreground wrap-break-word">{m.text}</p>
             </div>
           ))}
         </div>
