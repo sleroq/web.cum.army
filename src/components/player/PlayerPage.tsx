@@ -104,7 +104,7 @@ const PlayerPage = () => {
                 <div
                   className={`transition-all duration-300 overflow-hidden shrink-0 bg-surface bg-clip-padding ${
                     isChatOpen
-                      ? 'w-full lg:w-80 h-[500px] lg:h-[var(--player-height,0px)] opacity-100'
+                      ? 'w-full lg:w-80 h-[500px] lg:h-(--player-height,0px) opacity-100'
                       : 'w-0 h-0 opacity-0'
                   } ${
                     cinemaMode || !isChatOpen
