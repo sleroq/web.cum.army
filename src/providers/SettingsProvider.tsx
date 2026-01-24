@@ -15,6 +15,18 @@ interface StoredSettings {
 }
 
 export const SettingsProvider = ({ children }: SettingsProviderProps) => {
+  const [initialSettings] = useState<StoredSettings>(() => {
+    if (typeof window === 'undefined') return {};
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) return {};
+    try {
+      return JSON.parse(stored);
+    } catch (e) {
+      console.error('Failed to parse settings', e);
+      return {};
+    }
+  });
+
   const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>(() => {
     if (
       typeof window !== 'undefined' &&
@@ -34,48 +46,16 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
-  const [currentThemeId, setCurrentThemeId] = useState<string>(() => {
-    const stored = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null;
-    if (stored) {
-      try {
-        const parsed: StoredSettings = JSON.parse(stored);
-        return parsed.themeId || 'system';
-      } catch (e) {
-        console.error('Failed to parse settings', e);
-      }
-    }
-    return 'system';
-  });
+  const [currentThemeId, setCurrentThemeId] = useState<string>(initialSettings.themeId || 'system');
 
   const [customColors, setCustomColors] = useState<ThemeColors>(() => {
-    const stored = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null;
-    if (stored) {
-      try {
-        const parsed: StoredSettings = JSON.parse(stored);
-        if (parsed.customColors) {
-          // Merge with defaults to support settings saved before new theme keys existed.
-          return { ...DEFAULT_THEME.colors, ...parsed.customColors };
-        }
-        return DEFAULT_THEME.colors;
-      } catch {
-        // Error already logged in currentThemeId initializer
-      }
+    if (initialSettings.customColors) {
+      return { ...DEFAULT_THEME.colors, ...initialSettings.customColors };
     }
     return DEFAULT_THEME.colors;
   });
 
-  const [pauseOnClick, setPauseOnClick] = useState<boolean>(() => {
-    const stored = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null;
-    if (stored) {
-      try {
-        const parsed: StoredSettings = JSON.parse(stored);
-        return parsed.pauseOnClick ?? true;
-      } catch {
-        // Error already logged
-      }
-    }
-    return true;
-  });
+  const [pauseOnClick, setPauseOnClick] = useState<boolean>(initialSettings.pauseOnClick ?? true);
 
   const [isSettingsOpen, setSettingsOpen] = useState(false);
 

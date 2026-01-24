@@ -20,8 +20,7 @@ export const useVideoAutoplay = (
   const [showPlayButton, setShowPlayButton] = useState(false);
   const retryCountRef = useRef(0);
   const currentRetryTimeoutRef = useRef<number | undefined>(undefined);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const attemptPlayRef = useRef<any>(null);
+  const attemptPlayRef = useRef<(() => Promise<boolean>) | null>(null);
 
   const attemptPlay = useCallback(async (): Promise<boolean> => {
     const video = videoRef.current;

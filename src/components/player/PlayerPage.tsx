@@ -8,7 +8,7 @@ const PlayerPage = () => {
   const { cinemaMode } = useCinemaMode();
 
   const [streamKeys, setStreamKeys] = useState<string[]>([window.location.pathname.substring(1)]);
-  const [isModalOpen, setIsModelOpen] = useState<boolean>(false);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isChatOpen, setIsChatOpen] = useState<boolean>(() => {
     return localStorage.getItem('chat-open') !== 'false';
   });
@@ -18,7 +18,7 @@ const PlayerPage = () => {
       return;
     }
     setStreamKeys((prev) => [...prev, streamKey]);
-    setIsModelOpen((prev) => !prev);
+    setIsModalOpen((prev) => !prev);
   };
 
   const removeStream = (index: number) => {
@@ -43,7 +43,7 @@ const PlayerPage = () => {
           message={'Insert stream key to add to multi stream'}
           isOpen={isModalOpen}
           canCloseOnBackgroundClick={false}
-          onClose={() => setIsModelOpen(false)}
+          onClose={() => setIsModalOpen(false)}
           onAccept={(result: string) => addStream(result)}
         />
       )}
@@ -153,7 +153,7 @@ const PlayerPage = () => {
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 ' +
                     'focus-visible:ring-offset-2 focus-visible:ring-offset-background'
                   }
-                  onClick={() => setIsModelOpen((prev) => !prev)}
+                  onClick={() => setIsModalOpen((prev) => !prev)}
                 >
                   Add stream
                 </button>

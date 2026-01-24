@@ -1,5 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { parseLinkHeader } from '@web3-storage/parse-link-header';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ArrowsPointingOutIcon,
   PauseIcon,
@@ -19,8 +18,10 @@ import Tooltip from '../shared/Tooltip';
 import { useVideoAutoplay } from '../../hooks/useVideoAutoplay';
 import { SITE_NAME } from '../../config/site';
 import { useCinemaMode } from '../../providers/CinemaModeContext';
-import { getRtcConfiguration, waitForIceGatheringComplete } from '../../config/webrtc';
 import { useSettings } from '../../providers/SettingsContext';
+import { useWebRTCPlayer } from '../../hooks/useWebRTCPlayer';
+import { useOverlayVisibility } from '../../hooks/useOverlayVisibility';
+import { usePlayerInteraction } from '../../hooks/usePlayerInteraction';
 
 interface PlayerProps {
   streamKey: string;
@@ -34,52 +35,41 @@ const Player = (props: PlayerProps) => {
   const { cinemaMode, toggleCinemaMode } = useCinemaMode();
   const { pauseOnClick } = useSettings();
 
-  const apiPath = import.meta.env.VITE_API_PATH;
   const { streamKey, canClose, onClose, isChatOpen, onToggleChat } = props;
-
-  const [videoLayers, setVideoLayers] = useState([]);
-  const [hasSignal, setHasSignal] = useState<boolean>(false);
-  const [isMuted, setIsMuted] = useState<boolean>(true);
-  const [layerEndpoint, setLayerEndpoint] = useState<string>('');
-  const [hasPacketLoss, setHasPacketLoss] = useState<boolean>(false);
-  const [latency, setLatency] = useState<number>(0);
-  const [fps, setFps] = useState<number>(0);
-  const [droppedFrames, setDroppedFrames] = useState<number>(0);
-  const [videoOverlayVisible, setVideoOverlayVisible] = useState<boolean>(false);
-  const [connectFailed, setConnectFailed] = useState<boolean>(false);
-  const [activeAction, setActiveAction] = useState<'play' | 'pause' | null>(null);
-  const [currentLayer, setCurrentLayer] = useState<string>('disabled');
-
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const attachedStreamIdRef = useRef<string | null>(null);
-
-  const actionTimeoutRef = useRef<number | undefined>(undefined);
-  const hasSignalRef = useRef<boolean>(false);
-  const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
-  const eventSourceRef = useRef<EventSource | null>(null);
-  const prevStatsRef = useRef<{
-    jitterBufferDelay: number;
-    jitterBufferEmittedCount: number;
-    packetsLost: number;
-    packetsReceived: number;
-    framesDecoded: number;
-    framesDropped: number;
-    timestamp: number;
-  }>({
-    jitterBufferDelay: 0,
-    jitterBufferEmittedCount: 0,
-    packetsLost: 0,
-    packetsReceived: 0,
-    framesDecoded: 0,
-    framesDropped: 0,
-    timestamp: 0,
-  });
-  const videoOverlayVisibleTimeoutRef = useRef<number | undefined>(undefined);
-  const clickDelay = 250;
-  const lastClickTimeRef = useRef(0);
-  const clickTimeoutRef = useRef<number | undefined>(undefined);
   const streamVideoPlayerId = streamKey + '_videoPlayer';
 
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isMuted, setIsMuted] = useState<boolean>(true);
+
+  // Hooks
+  const {
+    videoLayers,
+    hasSignal,
+    layerEndpoint,
+    hasPacketLoss,
+    latency,
+    fps,
+    droppedFrames,
+    connectFailed,
+    currentLayer,
+    setCurrentLayer,
+  } = useWebRTCPlayer({ videoRef, streamKey });
+
+  const { videoOverlayVisible, registerOverlayContainer } = useOverlayVisibility();
+
+  const { activeAction, handleVideoPlayerClick, handleVideoPlayerDoubleClick } =
+    usePlayerInteraction({
+      videoRef,
+      pauseOnClick,
+    });
+
+  const { showPlayButton, handlePlayButtonClick } = useVideoAutoplay(videoRef, {
+    preferSound: true,
+    maxRetries: 3,
+    retryDelays: [0, 500, 1500],
+  });
+
+  // Resize observer
   useEffect(() => {
     const updateHeight = () => {
       const player = document.getElementById(streamVideoPlayerId);
@@ -101,13 +91,6 @@ const Player = (props: PlayerProps) => {
     return () => resizeObserver.disconnect();
   }, [streamVideoPlayerId]);
 
-  // Use the simplified autoplay hook
-  const { showPlayButton, handlePlayButtonClick } = useVideoAutoplay(videoRef, {
-    preferSound: true,
-    maxRetries: 3,
-    retryDelays: [0, 500, 1500],
-  });
-
   // Sync muted state with video element
   useEffect(() => {
     const video = videoRef.current;
@@ -116,320 +99,32 @@ const Player = (props: PlayerProps) => {
     }
   }, [isMuted]);
 
-  const resetTimer = (isVisible: boolean) => {
-    setVideoOverlayVisible(() => isVisible);
-
-    if (videoOverlayVisibleTimeoutRef) {
-      clearTimeout(videoOverlayVisibleTimeoutRef.current);
-    }
-
-    videoOverlayVisibleTimeoutRef.current = setTimeout(() => {
-      setVideoOverlayVisible(() => false);
-    }, 2500);
-  };
-
-  const setHasSignalHandler = useCallback(() => {
-    setHasSignal(() => true);
-  }, []);
-
-  const handleVideoPlayerClick = () => {
-    if (!pauseOnClick) return;
-
-    lastClickTimeRef.current = Date.now();
-
-    clickTimeoutRef.current = setTimeout(() => {
-      const timeSinceLastClick = Date.now() - lastClickTimeRef.current;
-      if (timeSinceLastClick >= clickDelay && timeSinceLastClick - clickDelay < 5000) {
-        if (videoRef.current?.paused) {
-          videoRef.current.play().catch((err) => console.error('VideoError', err));
-        } else {
-          videoRef.current?.pause();
-        }
-      }
-    }, clickDelay);
-  };
-  const handleVideoPlayerDoubleClick = () => {
-    clearTimeout(clickTimeoutRef.current);
-    lastClickTimeRef.current = 0;
-    videoRef.current
-      ?.requestFullscreen()
-      .catch((err) => console.error('VideoPlayer_RequestFullscreen', err));
-  };
-
+  // Register overlay container
   useEffect(() => {
-    const handleWindowBeforeUnload = () => {
-      peerConnectionRef.current?.close();
-      peerConnectionRef.current = null;
-    };
-
-    const handleOverlayTimer = (isVisible: boolean) => resetTimer(isVisible);
-    const handleMouseMove = () => handleOverlayTimer(true);
-    const handleMouseEnter = () => handleOverlayTimer(true);
-    const handleMouseLeave = () => handleOverlayTimer(false);
-    const handleMouseUp = () => handleOverlayTimer(true);
-    const handleTouchStart = () => handleOverlayTimer(true);
-
     const player = document.getElementById(streamVideoPlayerId);
+    const cleanup = registerOverlayContainer(player);
+    return cleanup;
+  }, [streamVideoPlayerId, registerOverlayContainer]);
 
-    player?.addEventListener('mousemove', handleMouseMove);
-    player?.addEventListener('mouseenter', handleMouseEnter);
-    player?.addEventListener('mouseleave', handleMouseLeave);
-    player?.addEventListener('mouseup', handleMouseUp);
-    player?.addEventListener('touchstart', handleTouchStart, { passive: true });
-
-    window.addEventListener('beforeunload', handleWindowBeforeUnload);
-
-    peerConnectionRef.current = new RTCPeerConnection(getRtcConfiguration());
-
+  // Volume change listener
+  useEffect(() => {
     const videoEl = videoRef.current;
-
     const handleVolumeChange = () => {
       if (videoEl) {
         setIsMuted(videoEl.muted);
       }
     };
 
-    const handlePlayPause = (e: Event) => {
-      const type = e.type === 'play' ? 'play' : 'pause';
-      if (actionTimeoutRef.current) clearTimeout(actionTimeoutRef.current);
-      setActiveAction(type);
-      actionTimeoutRef.current = setTimeout(() => setActiveAction(null), 500);
-    };
-
     if (videoEl) {
       videoEl.addEventListener('volumechange', handleVolumeChange);
-      videoEl.addEventListener('play', handlePlayPause);
-      videoEl.addEventListener('pause', handlePlayPause);
     }
 
     return () => {
-      peerConnectionRef.current?.close();
-      peerConnectionRef.current = null;
-
       if (videoEl) {
         videoEl.removeEventListener('volumechange', handleVolumeChange);
-        videoEl.removeEventListener('play', handlePlayPause);
-        videoEl.removeEventListener('pause', handlePlayPause);
-        videoEl.removeEventListener('playing', setHasSignalHandler);
-      }
-
-      player?.removeEventListener('mouseenter', handleMouseEnter);
-      player?.removeEventListener('mouseleave', handleMouseLeave);
-      player?.removeEventListener('mousemove', handleMouseMove);
-      player?.removeEventListener('mouseup', handleMouseUp);
-      player?.removeEventListener('touchstart', handleTouchStart);
-
-      window.removeEventListener('beforeunload', handleWindowBeforeUnload);
-
-      clearTimeout(videoOverlayVisibleTimeoutRef.current);
-    };
-  }, [streamVideoPlayerId, setHasSignalHandler]);
-
-  useEffect(() => {
-    hasSignalRef.current = hasSignal;
-
-    const intervalHandler = async () => {
-      if (!peerConnectionRef.current) {
-        return;
-      }
-
-      let receiversHasPacketLoss = false;
-      let currentLatency = 0;
-      let currentFps = 0;
-      let currentDropped = 0;
-
-      try {
-        const stats = await peerConnectionRef.current.getStats();
-        let jitterBufferMs = 0;
-        let rttMs = 0;
-
-        stats.forEach((report) => {
-          if (report.type === 'inbound-rtp' && report.kind === 'video') {
-            const dt = (report.timestamp - prevStatsRef.current.timestamp) / 1000;
-
-            const deltaDelay = report.jitterBufferDelay - prevStatsRef.current.jitterBufferDelay;
-            const deltaCount =
-              report.jitterBufferEmittedCount - prevStatsRef.current.jitterBufferEmittedCount;
-
-            if (deltaCount > 0) {
-              jitterBufferMs = (deltaDelay / deltaCount) * 1000;
-            }
-
-            const deltaLost = report.packetsLost - prevStatsRef.current.packetsLost;
-            const deltaReceived = report.packetsReceived - prevStatsRef.current.packetsReceived;
-            const totalPackets = deltaLost + deltaReceived;
-
-            if (totalPackets > 0) {
-              const lossRate = deltaLost / totalPackets;
-              receiversHasPacketLoss = lossRate > 0.05;
-            }
-
-            if (dt > 0) {
-              const deltaDecoded = report.framesDecoded - prevStatsRef.current.framesDecoded;
-              currentFps = deltaDecoded / dt;
-              currentDropped = report.framesDropped - prevStatsRef.current.framesDropped;
-            }
-
-            prevStatsRef.current = {
-              jitterBufferDelay: report.jitterBufferDelay,
-              jitterBufferEmittedCount: report.jitterBufferEmittedCount,
-              packetsLost: report.packetsLost,
-              packetsReceived: report.packetsReceived,
-              framesDecoded: report.framesDecoded,
-              framesDropped: report.framesDropped,
-              timestamp: report.timestamp,
-            };
-          }
-
-          if (report.type === 'candidate-pair' && report.state === 'succeeded') {
-            rttMs = (report.currentRoundTripTime || 0) * 1000;
-          }
-        });
-
-        currentLatency = jitterBufferMs + rttMs / 2;
-      } catch (err) {
-        console.error('StatsError', err);
-      }
-
-      setHasPacketLoss(() => receiversHasPacketLoss);
-      setLatency(() => currentLatency);
-      setFps(() => currentFps);
-      setDroppedFrames(() => currentDropped);
-    };
-
-    const interval = setInterval(intervalHandler, hasSignal ? 2_000 : 2_500);
-
-    return () => clearInterval(interval);
-  }, [hasSignal]);
-
-  useEffect(() => {
-    if (!peerConnectionRef.current) {
-      return;
-    }
-
-    peerConnectionRef.current.oniceconnectionstatechange = () => {
-      const state = peerConnectionRef.current?.iceConnectionState;
-      if (!state) {
-        return;
-      }
-
-      if (state === 'failed' || state === 'disconnected') {
-        console.error('WebRTC_ICEConnectionState', state);
       }
     };
-
-    peerConnectionRef.current.ontrack = (event: RTCTrackEvent) => {
-      const videoEl = videoRef.current;
-      if (!videoEl) {
-        return;
-      }
-      const stream = event.streams?.[0];
-      if (!stream) {
-        return;
-      }
-
-      const isNewStream = attachedStreamIdRef.current !== stream.id;
-      if (isNewStream) {
-        attachedStreamIdRef.current = stream.id;
-      }
-
-      if (videoEl.srcObject !== stream) {
-        videoEl.srcObject = stream;
-      }
-
-      videoEl.removeEventListener('playing', setHasSignalHandler);
-      videoEl.addEventListener('playing', setHasSignalHandler);
-    };
-
-    peerConnectionRef.current.addTransceiver('audio', { direction: 'recvonly' });
-    peerConnectionRef.current.addTransceiver('video', { direction: 'recvonly' });
-
-    let cancelled = false;
-
-    const connect = async () => {
-      try {
-        const peerConnection = peerConnectionRef.current;
-        if (!peerConnection) {
-          return;
-        }
-
-        const offer = await peerConnection.createOffer();
-        const sdp = offer.sdp?.replace('useinbandfec=1', 'useinbandfec=1;stereo=1');
-        const newOffer: RTCSessionDescriptionInit = { ...offer, sdp };
-
-        await peerConnection.setLocalDescription(newOffer);
-        await waitForIceGatheringComplete(peerConnection, 2000);
-
-        const offerSdp = peerConnection.localDescription?.sdp;
-        if (!offerSdp) {
-          throw new DOMException('Missing localDescription SDP');
-        }
-
-        const r = await fetch(`${apiPath}/whep`, {
-          method: 'POST',
-          body: offerSdp,
-          headers: {
-            Authorization: `Bearer ${streamKey}`,
-            'Content-Type': 'application/sdp',
-          },
-        });
-
-        if (cancelled) {
-          return;
-        }
-
-        setConnectFailed(r.status !== 201);
-        if (r.status !== 201) {
-          throw new DOMException('WHEP endpoint did not return 201');
-        }
-
-        const parsedLinkHeader = parseLinkHeader(r.headers.get('Link'));
-        if (parsedLinkHeader === null || parsedLinkHeader === undefined) {
-          throw new DOMException('Missing link header');
-        }
-
-        const apiProtocol = apiPath.startsWith('http')
-          ? new URL(apiPath).protocol
-          : window.location.protocol;
-
-        setLayerEndpoint(
-          `${apiProtocol}//${parsedLinkHeader['urn:ietf:params:whep:ext:core:layer'].url}`
-        );
-
-        const evtSource = new EventSource(
-          `${apiProtocol}//${parsedLinkHeader['urn:ietf:params:whep:ext:core:server-sent-events'].url}`
-        );
-        evtSource.onerror = () => evtSource.close();
-
-        evtSource.addEventListener('layers', (event) => {
-          const parsed = JSON.parse(event.data);
-          if (parsed?.['1']?.layers) {
-            setVideoLayers(() =>
-              parsed['1']['layers'].map((layer: { encodingId: string }) => layer.encodingId)
-            );
-          }
-        });
-
-        eventSourceRef.current = evtSource;
-
-        const answer = await r.text();
-        await peerConnection.setRemoteDescription({
-          sdp: answer,
-          type: 'answer',
-        });
-      } catch (err) {
-        console.error('PeerConnectionError', err);
-      }
-    };
-
-    void connect();
-
-    return () => {
-      cancelled = true;
-      eventSourceRef.current?.close();
-      eventSourceRef.current = null;
-    };
-  }, [apiPath, streamKey, setHasSignalHandler]);
+  }, []);
 
   return (
     <div id={streamVideoPlayerId} className="block w-full relative z-0">

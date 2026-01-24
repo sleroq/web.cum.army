@@ -7,6 +7,10 @@ import { UsersIcon } from '@heroicons/react/20/solid';
 import { SITE_NAME } from '../../config/site';
 import { getRtcConfiguration, waitForIceGatheringComplete } from '../../config/webrtc';
 
+const ICE_GATHERING_TIMEOUT = 2000;
+const STATS_INTERVAL_CONNECTED = 15_000;
+const STATS_INTERVAL_DISCONNECTED = 2_500;
+
 const mediaOptions = {
   audio: true,
   video: {
@@ -78,8 +82,8 @@ function BrowserBroadcaster() {
 
     if (!navigator.mediaDevices) {
       Promise.resolve().then(() => {
-        setMediaAccessError(() => ErrorMessageEnum.NoMediaDevices);
-        setUseDisplayMedia(() => 'None');
+        setMediaAccessError(ErrorMessageEnum.NoMediaDevices);
+        setUseDisplayMedia('None');
       });
       return;
     }
@@ -91,22 +95,24 @@ function BrowserBroadcaster() {
 
     mediaPromise.then(
       (mediaStream) => {
-        if (peerConnectionRef.current!.connectionState === 'closed') {
+        if (peerConnectionRef.current?.connectionState === 'closed') {
           mediaStream.getTracks().forEach((mediaStreamTrack) => mediaStreamTrack.stop());
 
           return;
         }
 
         stream = mediaStream;
-        videoRef.current!.srcObject = mediaStream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = mediaStream;
+        }
 
         mediaStream.getTracks().forEach((mediaStreamTrack) => {
           if (mediaStreamTrack.kind === 'audio') {
-            peerConnectionRef.current!.addTransceiver(mediaStreamTrack, {
+            peerConnectionRef.current?.addTransceiver(mediaStreamTrack, {
               direction: 'sendonly',
             });
           } else {
-            peerConnectionRef.current!.addTransceiver(mediaStreamTrack, {
+            peerConnectionRef.current?.addTransceiver(mediaStreamTrack, {
               direction: 'sendonly',
               sendEncodings: isScreenShare
                 ? []
@@ -129,18 +135,18 @@ function BrowserBroadcaster() {
 
         peerConnectionRef.current!.oniceconnectionstatechange = () => {
           if (
-            peerConnectionRef.current!.iceConnectionState === 'connected' ||
-            peerConnectionRef.current!.iceConnectionState === 'completed'
+            peerConnectionRef.current?.iceConnectionState === 'connected' ||
+            peerConnectionRef.current?.iceConnectionState === 'completed'
           ) {
-            setPublishSuccess(() => true);
-            setMediaAccessError(() => null);
-            setPeerConnectionDisconnected(() => false);
+            setPublishSuccess(true);
+            setMediaAccessError(null);
+            setPeerConnectionDisconnected(false);
           } else if (
-            peerConnectionRef.current!.iceConnectionState === 'disconnected' ||
-            peerConnectionRef.current!.iceConnectionState === 'failed'
+            peerConnectionRef.current?.iceConnectionState === 'disconnected' ||
+            peerConnectionRef.current?.iceConnectionState === 'failed'
           ) {
-            setPublishSuccess(() => false);
-            setPeerConnectionDisconnected(() => true);
+            setPublishSuccess(false);
+            setPeerConnectionDisconnected(true);
           }
         };
 
@@ -153,7 +159,7 @@ function BrowserBroadcaster() {
 
             const offer = await peerConnection.createOffer();
             await peerConnection.setLocalDescription(offer);
-            await waitForIceGatheringComplete(peerConnection, 2000);
+            await waitForIceGatheringComplete(peerConnection, ICE_GATHERING_TIMEOUT);
 
             const offerSdp = peerConnection.localDescription?.sdp;
             if (!offerSdp) {
@@ -191,7 +197,7 @@ function BrowserBroadcaster() {
         void connect();
       },
       (reason: ErrorMessageEnum) => {
-        setMediaAccessError(() => reason);
+        setMediaAccessError(reason);
         setUseDisplayMedia('None');
       }
     );
@@ -222,9 +228,9 @@ function BrowserBroadcaster() {
                 badSignalCountRef.current = signalIsValid ? 0 : badSignalCountRef.current + 1;
 
                 if (badSignalCountRef.current > 2) {
-                  setHasSignal(() => false);
+                  setHasSignal(false);
                 } else if (badSignalCountRef.current === 0 && !hasSignalRef.current) {
-                  setHasSignal(() => true);
+                  setHasSignal(true);
                 }
               }
             });
@@ -232,10 +238,13 @@ function BrowserBroadcaster() {
         }
       });
 
-      setHasPacketLoss(() => senderHasPacketLoss);
+      setHasPacketLoss(senderHasPacketLoss);
     };
 
-    const interval = setInterval(intervalHandler, hasSignal ? 15_000 : 2_500);
+    const interval = setInterval(
+      intervalHandler,
+      hasSignal ? STATS_INTERVAL_CONNECTED : STATS_INTERVAL_DISCONNECTED
+    );
 
     return () => {
       clearInterval(interval);
