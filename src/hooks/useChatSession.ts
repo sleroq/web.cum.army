@@ -61,7 +61,6 @@ export const useChatSession = ({ streamKey, enabled, displayName }: UseChatSessi
     connect();
   }, [streamKey, enabled, retryCount]);
 
-
   // 2. Subscribe to SSE
   useEffect(() => {
     if (!sessionId || !enabled) return;
@@ -73,6 +72,10 @@ export const useChatSession = ({ streamKey, enabled, displayName }: UseChatSessi
     eventSource.onopen = () => {
       setStatus('connected');
     };
+
+    eventSource.addEventListener('connected', () => {
+      setStatus('connected');
+    });
 
     const handleMessages = (newMessages: Message[]) => {
       setMessages((prev) => {
