@@ -22,6 +22,7 @@ export const useChatSession = ({ streamKey, enabled, displayName }: UseChatSessi
   const [status, setStatus] = useState<ChatStatus>('disconnected');
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   const eventSourceRef = useRef<EventSource | null>(null);
 
@@ -58,7 +59,8 @@ export const useChatSession = ({ streamKey, enabled, displayName }: UseChatSessi
     };
 
     connect();
-  }, [streamKey, enabled]);
+  }, [streamKey, enabled, retryCount]);
+
 
   // 2. Subscribe to SSE
   useEffect(() => {
@@ -90,17 +92,6 @@ export const useChatSession = ({ streamKey, enabled, displayName }: UseChatSessi
       });
     };
 
-    eventSource.addEventListener('history', (event) => {
-      try {
-        const rawHistory = JSON.parse(event.data) as (Message | { message: Message })[];
-        // Handle both flat Message and nested { message: Message } formats
-        const history = rawHistory.map((item) => ('message' in item ? item.message : item));
-        handleMessages(history);
-      } catch (err) {
-        console.error('ChatHistoryParseError', err);
-      }
-    });
-
     eventSource.addEventListener('message', (event) => {
       try {
         const rawMessage = JSON.parse(event.data) as Message | { message: Message };
@@ -113,10 +104,14 @@ export const useChatSession = ({ streamKey, enabled, displayName }: UseChatSessi
     });
 
     eventSource.onerror = (err) => {
-      console.error('ChatSSEError', err);
-      setStatus('error');
-      setError('Connection lost');
+      console.error('Connection lost. Re-authenticating...', err);
       eventSource.close();
+      // Trigger reconnection by resetting session and potentially retrying
+      setSessionId(null);
+      // Optional: Add a small delay or just let the user effect handle it
+      // Since we need to re-fetch /connect, we need to trigger the first effect.
+      // We can do this by forcing a dependency update.
+      setRetryCount((prev) => prev + 1);
     };
 
     return () => {
