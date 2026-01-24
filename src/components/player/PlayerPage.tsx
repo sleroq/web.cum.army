@@ -57,7 +57,7 @@ const PlayerPage = () => {
           {!cinemaMode && (
             <div
               className={`w-full flex items-baseline justify-between transition-all duration-300 ${
-                cinemaMode ? 'max-w-full' : 'max-w-full'
+                isSingleStream && !cinemaMode ? 'max-w-[1200px]' : ''
               }`}
             >
               <div className="flex items-center gap-4">
