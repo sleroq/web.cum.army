@@ -134,12 +134,12 @@ const ChatPanel = ({ streamKey, variant = 'sidebar', isOpen }: ChatPanelProps) =
             <div key={m.id} className="flex flex-col">
               <div className="flex items-baseline gap-2">
                 <span
-                  className="text-xs font-bold truncate max-w-[120px]"
+                  className="text-xs font-bold truncate min-w-0"
                   style={{ color: getUsernameColor(m.displayName) }}
                 >
                   {m.displayName}
                 </span>
-                <span className="text-[10px] text-muted">
+                <span className="text-[10px] text-muted shrink-0">
                   {new Date(m.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </span>
               </div>
