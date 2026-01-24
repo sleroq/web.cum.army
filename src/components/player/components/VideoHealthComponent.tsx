@@ -39,7 +39,7 @@ const VideoHealthComponent = ({ fps, dropped }: VideoHealthComponentProps) => {
       targetFps = 48;
     }
 
-    if (fps >= targetFps * 0.9) return 'text-white';
+    if (fps >= targetFps * 0.9) return 'text-foreground';
     if (fps >= targetFps * 0.7) return 'text-yellow-400';
     return 'text-red-400';
   };

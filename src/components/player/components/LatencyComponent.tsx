@@ -10,7 +10,7 @@ const LatencyComponent = ({ latency }: LatencyComponentProps) => {
   if (latency <= 0) return null;
 
   const getLatencyColor = (ms: number) => {
-    if (ms < 150) return 'text-white';
+    if (ms < 150) return 'text-foreground';
     if (ms < 400) return 'text-yellow-400';
     return 'text-red-400';
   };

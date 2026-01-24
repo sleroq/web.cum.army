@@ -7,7 +7,6 @@ interface ChatPanelProps {
   streamKey: string;
   variant?: 'sidebar' | 'below';
   isOpen: boolean;
-  cinemaMode?: boolean;
 }
 
 const getUsernameColor = (username: string) => {
@@ -19,12 +18,7 @@ const getUsernameColor = (username: string) => {
   return `hsl(${h}, 80%, 75%)`;
 };
 
-const ChatPanel = ({
-  streamKey,
-  variant = 'sidebar',
-  isOpen,
-  cinemaMode = false,
-}: ChatPanelProps) => {
+const ChatPanel = ({ streamKey, variant = 'sidebar', isOpen }: ChatPanelProps) => {
   const [displayName, setDisplayName] = useState<string>(() => {
     return localStorage.getItem('chatDisplayName') || '';
   });
@@ -102,18 +96,10 @@ const ChatPanel = ({
       )}
 
       <div
-        className={`flex flex-col bg-surface border-border transition-all duration-300 overflow-hidden h-full bg-clip-padding ${
+        className={`flex flex-col transition-all duration-300 overflow-hidden h-full ${
           isSidebar
-            ? `w-full ${
-                isOpen
-                  ? `opacity-100 ${
-                      cinemaMode
-                        ? 'rounded-none border-y-0 border-r-0 border-l border-border shadow-none'
-                        : 'rounded-xl border border-border shadow-[0_20px_60px_rgba(0,0,0,0.55)]'
-                    }`
-                  : 'opacity-0'
-              }`
-            : `w-full border-t ${isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`
+            ? `w-full ${isOpen ? 'opacity-100' : 'opacity-0'}`
+            : `w-full bg-surface border-t border-border ${isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`
         }`}
       >
         {/* Header */}

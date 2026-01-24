@@ -50,14 +50,14 @@ const PlayerPage = () => {
 
       <div
         className={`mx-auto transition-all duration-300 ${
-          cinemaMode ? 'max-w-full px-0 py-0' : 'max-w-[1400px] px-4 md:px-8 py-6 md:py-10'
+          cinemaMode ? 'max-w-full px-0 py-0' : 'max-w-[1600px] px-2 sm:px-4 md:px-6 py-4 md:py-10'
         }`}
       >
         <div className="flex flex-col items-center gap-6 md:gap-8">
           {!cinemaMode && (
             <div
               className={`w-full flex items-baseline justify-between transition-all duration-300 ${
-                cinemaMode ? 'max-w-full' : 'max-w-[1200px]'
+                cinemaMode ? 'max-w-full' : 'max-w-full'
               }`}
             >
               <div className="flex items-center gap-4">
@@ -84,13 +84,13 @@ const PlayerPage = () => {
           >
             {isSingleStream ? (
               <div
-                className={`flex flex-col lg:flex-row ${cinemaMode ? 'gap-0' : 'gap-4'} w-full items-start`}
+                className={`flex flex-col lg:flex-row ${cinemaMode || !isChatOpen ? 'gap-0' : 'gap-4'} w-full items-start`}
               >
                 <div
-                  className={`flex-1 overflow-hidden bg-surface transition-all duration-300 relative bg-clip-padding ${
+                  className={`flex-1 w-full overflow-hidden bg-surface transition-all duration-300 relative bg-clip-padding ${
                     cinemaMode
                       ? 'rounded-none border-0 shadow-none'
-                      : 'rounded-xl border border-border shadow-[0_20px_60px_rgba(0,0,0,0.55)]'
+                      : 'rounded-xl border border-border shadow-[0_20px_60px_var(--color-shadow)]'
                   }`}
                 >
                   <Player
@@ -102,17 +102,17 @@ const PlayerPage = () => {
                   />
                 </div>
                 <div
-                  className={`transition-all duration-300 overflow-hidden shrink-0 ${
-                    isChatOpen ? 'w-80' : 'w-0'
+                  className={`transition-all duration-300 overflow-hidden shrink-0 bg-surface bg-clip-padding ${
+                    isChatOpen
+                      ? 'w-full lg:w-80 h-[500px] lg:h-[var(--player-height,0px)] opacity-100'
+                      : 'w-0 h-0 opacity-0'
+                  } ${
+                    cinemaMode || !isChatOpen
+                      ? 'rounded-none border-0 shadow-none'
+                      : 'rounded-xl border border-border shadow-[0_20px_60px_var(--color-shadow)]'
                   }`}
-                  style={{ height: 'var(--player-height, 0px)' }}
                 >
-                  <ChatPanel
-                    streamKey={streamKeys[0]}
-                    variant="sidebar"
-                    isOpen={isChatOpen}
-                    cinemaMode={cinemaMode}
-                  />
+                  <ChatPanel streamKey={streamKeys[0]} variant="sidebar" isOpen={isChatOpen} />
                 </div>
               </div>
             ) : (
@@ -125,7 +125,7 @@ const PlayerPage = () => {
                     className={`flex flex-col overflow-hidden bg-surface transition-all duration-300 bg-clip-padding ${
                       cinemaMode
                         ? 'rounded-none border-0 shadow-none'
-                        : 'rounded-xl border border-border shadow-[0_20px_60px_rgba(0,0,0,0.55)]'
+                        : 'rounded-xl border border-border shadow-[0_20px_60px_var(--color-shadow)]'
                     }`}
                   >
                     <Player
@@ -135,12 +135,7 @@ const PlayerPage = () => {
                       isChatOpen={isChatOpen}
                       onToggleChat={toggleChat}
                     />
-                    <ChatPanel
-                      streamKey={streamKey}
-                      variant="below"
-                      isOpen={isChatOpen}
-                      cinemaMode={cinemaMode}
-                    />
+                    <ChatPanel streamKey={streamKey} variant="below" isOpen={isChatOpen} />
                   </div>
                 ))}
               </div>

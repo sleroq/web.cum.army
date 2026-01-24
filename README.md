@@ -10,6 +10,7 @@ This is a fork of the web player for [broadcast-box](https://github.com/glimesh/
 - **Performance Indicators**: Real-time display of FPS, latency, and dropped frames directly in the player.
 - **Consistent Design**: Unified UI components across the entire application.
 - **Stream Auto-play**: Streams attempt to play automatically by default, with smart retry logic and muted fallback if needed.
+- **Configurable STUN (ICE) Servers**: Configure ICE servers via env for better NAT traversal and improved Firefox/mobile playback reliability.
 - **Integrated Chat**: Real-time chat system using Server-Sent Events (SSE) with message history and customizable display names.
 - **Modern Tech Stack**: Updated to React 19, Vite 7, and Tailwind CSS v4. Includes React Compiler for better performance and strict linting/formatting rules.
 

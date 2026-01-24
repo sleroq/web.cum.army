@@ -9,8 +9,8 @@ interface SettingsProviderProps {
 const STORAGE_KEY = 'broadcast_box_settings';
 
 interface StoredSettings {
-  themeId: string;
-  customColors: ThemeColors;
+  themeId?: string;
+  customColors?: Partial<ThemeColors>;
   pauseOnClick?: boolean;
 }
 
@@ -52,7 +52,11 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
     if (stored) {
       try {
         const parsed: StoredSettings = JSON.parse(stored);
-        return parsed.customColors || DEFAULT_THEME.colors;
+        if (parsed.customColors) {
+          // Merge with defaults to support settings saved before new theme keys existed.
+          return { ...DEFAULT_THEME.colors, ...parsed.customColors };
+        }
+        return DEFAULT_THEME.colors;
       } catch {
         // Error already logged in currentThemeId initializer
       }

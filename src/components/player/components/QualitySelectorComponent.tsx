@@ -45,7 +45,7 @@ const QualitySelectorComponent = (props: QualityComponentProps) => {
         <button
           type="button"
           onClick={() => setIsOpen((prev) => (props.layers.length <= 1 ? false : !prev))}
-          className={`p-1 rounded hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/50 ${
+          className={`p-1 rounded hover:bg-foreground/10 focus:outline-none focus:ring-2 focus:ring-foreground/50 ${
             props.hasPacketLoss ? 'text-orange-600' : ''
           }`}
           aria-label="Quality Selector"
@@ -73,12 +73,12 @@ const QualitySelectorComponent = (props: QualityComponentProps) => {
 				leading-tight
 				focus:outline-hidden
 				focus:shadow-outline
-				bg-gray-700
-				border-gray-700
-				text-white
+				bg-surface
+				border-border
+				text-foreground
 				rounded-sm
 				shadow-md
-				placeholder-gray-200"
+				placeholder-muted"
         >
           {layerList}
         </select>

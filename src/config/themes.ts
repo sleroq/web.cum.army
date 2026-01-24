@@ -7,6 +7,7 @@ export interface ThemeColors {
   muted: string;
   brand: string;
   brandHover: string;
+  shadow: string;
 }
 
 export interface Theme {
@@ -27,6 +28,7 @@ export const DARK_THEME: Theme = {
     muted: '#cccccc',
     brand: '#ec3b73',
     brandHover: '#ff69a0',
+    shadow: 'rgba(0, 0, 0, 0.55)',
   },
 };
 
@@ -42,6 +44,7 @@ export const LIGHT_THEME: Theme = {
     muted: '#64748b',
     brand: '#ec3b73',
     brandHover: '#d81b60',
+    shadow: 'rgba(0, 0, 0, 0.15)',
   },
 };
 
@@ -67,6 +70,7 @@ export const THEMES: Theme[] = [
       muted: '#94a3b8',
       brand: '#38bdf8',
       brandHover: '#0ea5e9',
+      shadow: 'rgba(0, 0, 0, 0.45)',
     },
   },
   {
@@ -81,6 +85,7 @@ export const THEMES: Theme[] = [
       muted: '#a7f3d0',
       brand: '#10b981',
       brandHover: '#059669',
+      shadow: 'rgba(0, 0, 0, 0.45)',
     },
   },
 ];

@@ -2,6 +2,7 @@
 , buildNpmPackage
 , siteTitle ? "Broadcast Box"
 , apiPath ? ""
+, iceServers ? ""
 }:
 
 buildNpmPackage {
@@ -21,6 +22,7 @@ buildNpmPackage {
 
   VITE_SITE_TITLE = siteTitle;
   VITE_API_PATH = apiPath;
+  VITE_ICE_SERVERS = iceServers;
 
   npmDepsHash = "sha256-BxhPPftuPLwWbe5XY5OHFobYAn+v29Nn/WcnLuh7Tfo=";
 

@@ -5,6 +5,7 @@ import PlayerHeader from '../playerHeader/PlayerHeader';
 import { StatusContext } from '../../providers/StatusContext';
 import { UsersIcon } from '@heroicons/react/20/solid';
 import { SITE_NAME } from '../../config/site';
+import { getRtcConfiguration, waitForIceGatheringComplete } from '../../config/webrtc';
 
 const mediaOptions = {
   audio: true,
@@ -70,9 +71,10 @@ function BrowserBroadcaster() {
       return;
     }
 
-    peerConnectionRef.current = new RTCPeerConnection();
+    peerConnectionRef.current = new RTCPeerConnection(getRtcConfiguration());
 
     let stream: MediaStream | undefined = undefined;
+    let cancelled = false;
 
     if (!navigator.mediaDevices) {
       Promise.resolve().then(() => {
@@ -142,37 +144,51 @@ function BrowserBroadcaster() {
           }
         };
 
-        peerConnectionRef.current!.createOffer().then((offer) => {
-          peerConnectionRef
-            .current!.setLocalDescription(offer)
-            .catch((err) => console.error('SetLocalDescription', err));
+        const connect = async () => {
+          try {
+            const peerConnection = peerConnectionRef.current;
+            if (!peerConnection) {
+              return;
+            }
 
-          fetch(`${apiPath}/whip`, {
-            method: 'POST',
-            body: offer.sdp,
-            headers: {
-              Authorization: `Bearer ${streamKey}`,
-              'Content-Type': 'application/sdp',
-            },
-          })
-            .then((r) => {
-              setConnectFailed(r.status !== 201);
-              if (r.status !== 201) {
-                throw new DOMException('WHIP endpoint did not return 201');
-              }
+            const offer = await peerConnection.createOffer();
+            await peerConnection.setLocalDescription(offer);
+            await waitForIceGatheringComplete(peerConnection, 2000);
 
-              return r.text();
-            })
-            .then((answer) => {
-              peerConnectionRef
-                .current!.setRemoteDescription({
-                  sdp: answer,
-                  type: 'answer',
-                })
-                .catch((err) => console.error('SetRemoveDescription', err));
-            })
-            .catch((err) => console.error('WHIP Error', err));
-        });
+            const offerSdp = peerConnection.localDescription?.sdp;
+            if (!offerSdp) {
+              throw new DOMException('Missing localDescription SDP');
+            }
+
+            const r = await fetch(`${apiPath}/whip`, {
+              method: 'POST',
+              body: offerSdp,
+              headers: {
+                Authorization: `Bearer ${streamKey}`,
+                'Content-Type': 'application/sdp',
+              },
+            });
+
+            if (cancelled) {
+              return;
+            }
+
+            setConnectFailed(r.status !== 201);
+            if (r.status !== 201) {
+              throw new DOMException('WHIP endpoint did not return 201');
+            }
+
+            const answer = await r.text();
+            await peerConnection.setRemoteDescription({
+              sdp: answer,
+              type: 'answer',
+            });
+          } catch (err) {
+            console.error('WHIP Error', err);
+          }
+        };
+
+        void connect();
       },
       (reason: ErrorMessageEnum) => {
         setMediaAccessError(() => reason);
@@ -181,6 +197,7 @@ function BrowserBroadcaster() {
     );
 
     return () => {
+      cancelled = true;
       peerConnectionRef.current?.close();
       if (stream) {
         stream.getTracks().forEach((streamTrack: MediaStreamTrack) => streamTrack.stop());
@@ -271,7 +288,7 @@ function BrowserBroadcaster() {
           </PlayerHeader>
         )}
 
-        <div className="w-full max-w-[1200px] rounded-xl overflow-hidden bg-surface ring-1 ring-border shadow-[0_20px_60px_rgba(0,0,0,0.55)]">
+        <div className="w-full max-w-[1200px] rounded-xl overflow-hidden bg-surface ring-1 ring-border shadow-[0_20px_60px_var(--color-shadow)]">
           <video ref={videoRef} autoPlay muted controls playsInline className="w-full h-full" />
         </div>
 

@@ -26,6 +26,12 @@ const SettingsModal = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isSettingsOpen, setSettingsOpen]);
 
+  const colorKeys = React.useMemo(() => Object.keys(customColors) as Array<keyof ThemeColors>, [customColors]);
+
+  const isHexColor = (value: string) => /^#[0-9a-fA-F]{6}$/.test(value);
+
+  const formatLabel = (key: string) => key.replace(/([A-Z])/g, ' $1').trim();
+
   if (!isSettingsOpen) return null;
 
   return (
@@ -95,19 +101,45 @@ const SettingsModal = () => {
             <div>
               <label className="block text-sm font-medium text-muted mb-3">Colors</label>
               <div className="grid grid-cols-2 gap-4">
-                {Object.keys(customColors).map((key) => (
-                  <div key={key} className="flex items-center gap-3">
-                    <input
-                      type="color"
-                      value={customColors[key as keyof ThemeColors]}
-                      onChange={(e) => updateCustomColor(key as keyof ThemeColors, e.target.value)}
-                      className="h-8 w-8 rounded cursor-pointer bg-transparent border-0 p-0"
-                    />
-                    <span className="text-sm text-muted capitalize">
-                      {key.replace(/([A-Z])/g, ' $1').trim()}
-                    </span>
-                  </div>
-                ))}
+                {colorKeys.map((key) => {
+                  const value = customColors[key];
+                  const label = formatLabel(key);
+
+                  // Native <input type="color"> only reliably supports #RRGGBB.
+                  // For values like rgba(...), fall back to a text input.
+                  if (!isHexColor(value)) {
+                    const isValid =
+                      typeof CSS !== 'undefined' ? CSS.supports('color', value) : value.trim().length > 0;
+
+                    return (
+                      <div key={key} className="flex items-center gap-3">
+                        <input
+                          type="text"
+                          value={value}
+                          onChange={(e) => updateCustomColor(key, e.target.value)}
+                          className={`h-8 w-20 rounded bg-input border px-2 text-xs text-foreground focus:outline-none focus:border-brand ${
+                            isValid ? 'border-border' : 'border-red-500'
+                          }`}
+                          aria-label={`${label} color`}
+                        />
+                        <span className="text-sm text-muted">{label}</span>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div key={key} className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={value}
+                        onChange={(e) => updateCustomColor(key, e.target.value)}
+                        className="h-8 w-8 rounded cursor-pointer bg-transparent border-0 p-0"
+                        aria-label={`${label} color`}
+                      />
+                      <span className="text-sm text-muted">{label}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}

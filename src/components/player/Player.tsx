@@ -19,6 +19,7 @@ import Tooltip from '../shared/Tooltip';
 import { useVideoAutoplay } from '../../hooks/useVideoAutoplay';
 import { SITE_NAME } from '../../config/site';
 import { useCinemaMode } from '../../providers/CinemaModeContext';
+import { getRtcConfiguration, waitForIceGatheringComplete } from '../../config/webrtc';
 import { useSettings } from '../../providers/SettingsContext';
 
 interface PlayerProps {
@@ -178,7 +179,7 @@ const Player = (props: PlayerProps) => {
 
     window.addEventListener('beforeunload', handleWindowBeforeUnload);
 
-    peerConnectionRef.current = new RTCPeerConnection();
+    peerConnectionRef.current = new RTCPeerConnection(getRtcConfiguration());
 
     const videoEl = videoRef.current;
 
@@ -306,6 +307,17 @@ const Player = (props: PlayerProps) => {
       return;
     }
 
+    peerConnectionRef.current.oniceconnectionstatechange = () => {
+      const state = peerConnectionRef.current?.iceConnectionState;
+      if (!state) {
+        return;
+      }
+
+      if (state === 'failed' || state === 'disconnected') {
+        console.error('WebRTC_ICEConnectionState', state);
+      }
+    };
+
     peerConnectionRef.current.ontrack = (event: RTCTrackEvent) => {
       const videoEl = videoRef.current;
       if (!videoEl) {
@@ -332,82 +344,97 @@ const Player = (props: PlayerProps) => {
     peerConnectionRef.current.addTransceiver('audio', { direction: 'recvonly' });
     peerConnectionRef.current.addTransceiver('video', { direction: 'recvonly' });
 
-    peerConnectionRef.current.createOffer().then((offer) => {
-      const sdp = offer.sdp?.replace('useinbandfec=1', 'useinbandfec=1;stereo=1');
-      const newOffer = { ...offer, sdp };
+    let cancelled = false;
 
-      peerConnectionRef
-        .current!.setLocalDescription(newOffer)
-        .catch((err) => console.error('SetLocalDescription', err));
+    const connect = async () => {
+      try {
+        const peerConnection = peerConnectionRef.current;
+        if (!peerConnection) {
+          return;
+        }
 
-      fetch(`${apiPath}/whep`, {
-        method: 'POST',
-        body: newOffer.sdp,
-        headers: {
-          Authorization: `Bearer ${streamKey}`,
-          'Content-Type': 'application/sdp',
-        },
-      })
-        .then((r) => {
-          setConnectFailed(r.status !== 201);
-          if (r.status !== 201) {
-            throw new DOMException('WHEP endpoint did not return 201');
+        const offer = await peerConnection.createOffer();
+        const sdp = offer.sdp?.replace('useinbandfec=1', 'useinbandfec=1;stereo=1');
+        const newOffer: RTCSessionDescriptionInit = { ...offer, sdp };
+
+        await peerConnection.setLocalDescription(newOffer);
+        await waitForIceGatheringComplete(peerConnection, 2000);
+
+        const offerSdp = peerConnection.localDescription?.sdp;
+        if (!offerSdp) {
+          throw new DOMException('Missing localDescription SDP');
+        }
+
+        const r = await fetch(`${apiPath}/whep`, {
+          method: 'POST',
+          body: offerSdp,
+          headers: {
+            Authorization: `Bearer ${streamKey}`,
+            'Content-Type': 'application/sdp',
+          },
+        });
+
+        if (cancelled) {
+          return;
+        }
+
+        setConnectFailed(r.status !== 201);
+        if (r.status !== 201) {
+          throw new DOMException('WHEP endpoint did not return 201');
+        }
+
+        const parsedLinkHeader = parseLinkHeader(r.headers.get('Link'));
+        if (parsedLinkHeader === null || parsedLinkHeader === undefined) {
+          throw new DOMException('Missing link header');
+        }
+
+        const apiProtocol = apiPath.startsWith('http')
+          ? new URL(apiPath).protocol
+          : window.location.protocol;
+
+        setLayerEndpoint(
+          `${apiProtocol}//${parsedLinkHeader['urn:ietf:params:whep:ext:core:layer'].url}`
+        );
+
+        const evtSource = new EventSource(
+          `${apiProtocol}//${parsedLinkHeader['urn:ietf:params:whep:ext:core:server-sent-events'].url}`
+        );
+        evtSource.onerror = () => evtSource.close();
+
+        evtSource.addEventListener('layers', (event) => {
+          const parsed = JSON.parse(event.data);
+          if (parsed?.['1']?.layers) {
+            setVideoLayers(() =>
+              parsed['1']['layers'].map((layer: { encodingId: string }) => layer.encodingId)
+            );
           }
+        });
 
-          const parsedLinkHeader = parseLinkHeader(r.headers.get('Link'));
+        eventSourceRef.current = evtSource;
 
-          if (parsedLinkHeader === null || parsedLinkHeader === undefined) {
-            throw new DOMException('Missing link header');
-          }
+        const answer = await r.text();
+        await peerConnection.setRemoteDescription({
+          sdp: answer,
+          type: 'answer',
+        });
+      } catch (err) {
+        console.error('PeerConnectionError', err);
+      }
+    };
 
-          const apiProtocol = apiPath.startsWith('http')
-            ? new URL(apiPath).protocol
-            : window.location.protocol;
-
-          setLayerEndpoint(
-            `${apiProtocol}//${parsedLinkHeader['urn:ietf:params:whep:ext:core:layer'].url}`
-          );
-
-          const evtSource = new EventSource(
-            `${apiProtocol}//${parsedLinkHeader['urn:ietf:params:whep:ext:core:server-sent-events'].url}`
-          );
-          evtSource.onerror = () => evtSource.close();
-
-          evtSource.addEventListener('layers', (event) => {
-            const parsed = JSON.parse(event.data);
-            if (parsed?.['1']?.layers) {
-              setVideoLayers(() =>
-                parsed['1']['layers'].map((layer: { encodingId: string }) => layer.encodingId)
-              );
-            }
-          });
-          eventSourceRef.current = evtSource;
-
-          return r.text();
-        })
-        .then((answer) => {
-          peerConnectionRef
-            .current!.setRemoteDescription({
-              sdp: answer,
-              type: 'answer',
-            })
-            .catch((err) => console.error('RemoteDescription', err));
-        })
-        .catch((err) => console.error('PeerConnectionError', err));
-    });
+    void connect();
 
     return () => {
+      cancelled = true;
       eventSourceRef.current?.close();
       eventSourceRef.current = null;
     };
-  }, [apiPath, streamKey, peerConnectionRef, setHasSignalHandler]);
+  }, [apiPath, streamKey, setHasSignalHandler]);
 
   return (
     <div id={streamVideoPlayerId} className="block w-full relative z-0">
       {connectFailed && (
-        <p
-          className={`bg-red-700 text-white text-lg text-center p-4 ${!cinemaMode ? 'rounded-t-xl' : ''} whitespace-pre-wrap`}
-        >
+        <p className={`bg-red-700 text-white text-lg text-center p-4 whitespace-pre-wrap`}>
           Failed to start {SITE_NAME} session 👮{' '}
         </p>
       )}
@@ -416,7 +443,6 @@ const Player = (props: PlayerProps) => {
         onDoubleClick={handleVideoPlayerDoubleClick}
         className={`
           absolute
-          ${!cinemaMode ? 'rounded-xl' : ''}
           w-full
           h-full
           z-10
@@ -432,7 +458,7 @@ const Player = (props: PlayerProps) => {
       >
         {/*Opaque background*/}
         <div
-          className={`absolute w-full bg-background ${!hasSignal ? 'opacity-40' : 'opacity-0'} h-full ${!cinemaMode ? 'rounded-xl' : ''}`}
+          className={`absolute w-full bg-background ${!hasSignal ? 'opacity-40' : 'opacity-0'} h-full`}
         />
 
         {/* Chat Toggle Button */}
@@ -448,8 +474,8 @@ const Player = (props: PlayerProps) => {
                 e.stopPropagation();
                 onToggleChat();
               }}
-              className={`p-2 rounded-full backdrop-blur-md text-white border border-white/10 shadow-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 ${
-                isChatOpen ? 'bg-brand' : 'bg-surface/60 hover:bg-surface/80'
+              className={`p-2 rounded-full backdrop-blur-md text-foreground border border-foreground/10 shadow-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60 ${
+                isChatOpen ? 'bg-brand text-white' : 'bg-surface/60 hover:bg-surface/80'
               }`}
               aria-label="Toggle chat"
             >
@@ -471,7 +497,7 @@ const Player = (props: PlayerProps) => {
                 e.stopPropagation();
                 onClose?.();
               }}
-              className="p-2 rounded-full bg-surface/60 hover:bg-surface/80 backdrop-blur-md text-white border border-white/10 shadow-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+              className="p-2 rounded-full bg-surface/60 hover:bg-surface/80 backdrop-blur-md text-foreground border border-foreground/10 shadow-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
               aria-label="Close stream"
             >
               <XMarkIcon className="size-5" />
@@ -487,7 +513,7 @@ const Player = (props: PlayerProps) => {
               hasSignal && !videoOverlayVisible
                 ? 'opacity-0 pointer-events-none'
                 : 'opacity-100 pointer-events-auto'
-            } text-white w-full flex flex-row items-center gap-1.5 sm:gap-3 ${!cinemaMode ? 'rounded-b-xl' : ''} px-2 sm:px-3 min-h-10 max-h-10 sm:min-h-12 sm:max-h-12 border-t border-white/10 [&_svg]:cursor-pointer [&_svg]:size-6! sm:[&_svg]:size-7!`}
+            } text-foreground w-full flex flex-row items-center gap-1.5 sm:gap-3 ${!cinemaMode ? 'rounded-b-xl' : ''} px-2 sm:px-3 min-h-10 max-h-10 sm:min-h-12 sm:max-h-12 border-t border-foreground/10 [&_svg]:cursor-pointer [&_svg]:size-6! sm:[&_svg]:size-7!`}
           >
             <PlayPauseComponent videoRef={videoRef} />
 
@@ -525,7 +551,7 @@ const Player = (props: PlayerProps) => {
             <div className="hidden sm:block">
               <Tooltip text="Cinema Mode">
                 <RectangleStackIcon
-                  className={cinemaMode ? 'text-brand' : 'text-white'}
+                  className={cinemaMode ? 'text-brand' : 'text-foreground'}
                   onClick={toggleCinemaMode}
                 />
               </Tooltip>
@@ -552,9 +578,9 @@ const Player = (props: PlayerProps) => {
               className={
                 `pointer-events-auto bg-surface/60 hover:bg-surface/70 backdrop-blur-md transition-opacity duration-500 ${
                   hasSignal && !videoOverlayVisible ? 'opacity-0' : 'opacity-100'
-                } text-white ` +
-                'rounded-full w-16 h-16 flex items-center justify-center shadow-lg shadow-black/30 border border-white/10 ' +
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black/40'
+                } text-foreground ` +
+                'rounded-full w-16 h-16 flex items-center justify-center shadow-lg shadow-black/30 border border-foreground/10 ' +
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black/40'
               }
             >
               <PlayIcon className="size-8!" />
@@ -594,7 +620,7 @@ const Player = (props: PlayerProps) => {
         autoPlay
         muted
         playsInline
-        className={`bg-transparent ${!cinemaMode ? 'rounded-xl' : ''} w-full aspect-video relative block object-contain transition-all duration-300`}
+        className={`bg-transparent w-full aspect-video relative block object-contain transition-all duration-300`}
       />
     </div>
   );
