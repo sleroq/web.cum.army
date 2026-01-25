@@ -22,9 +22,14 @@ export const useChatSession = ({ streamKey, enabled, displayName }: UseChatSessi
   const [status, setStatus] = useState<ChatStatus>('disconnected');
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
 
-  const eventSourceRef = useRef<EventSource | null>(null);
+  const lastEventIdRef = useRef<string | null>(null);
+
+  // Reset messages only when streamKey changes
+  useEffect(() => {
+    setMessages([]);
+    lastEventIdRef.current = null;
+  }, [streamKey]);
 
   // 1. Connect to get Session ID
   useEffect(() => {
@@ -59,29 +64,103 @@ export const useChatSession = ({ streamKey, enabled, displayName }: UseChatSessi
     };
 
     connect();
-  }, [streamKey, enabled, retryCount]);
+  }, [streamKey, enabled]);
 
-  // 2. Subscribe to SSE
+  // 2. Subscribe to SSE via fetch (to support Last-Event-ID header)
   useEffect(() => {
     if (!sessionId || !enabled) return;
 
-    const url = `${apiPath}/chat/sse/${sessionId}`;
-    const eventSource = new EventSource(url);
-    eventSourceRef.current = eventSource;
+    const abortController = new AbortController();
+    let retryTimeout: ReturnType<typeof setTimeout>;
 
-    eventSource.onopen = () => {
-      setStatus('connected');
+    const startSSE = async () => {
+      const url = `${apiPath}/chat/sse/${sessionId}`;
+
+      try {
+        const headers: Record<string, string> = {
+          Accept: 'text/event-stream',
+        };
+        if (lastEventIdRef.current) {
+          headers['Last-Event-ID'] = lastEventIdRef.current;
+        }
+
+        const response = await fetch(url, {
+          headers,
+          signal: abortController.signal,
+        });
+
+        if (!response.ok) {
+          if (response.status === 404 || response.status === 401) {
+            // Session expired or invalid, need to re-authenticate
+            setSessionId(null);
+            return;
+          }
+          throw new Error(`SSE fetch failed: ${response.status}`);
+        }
+
+        const reader = response.body?.getReader();
+        if (!reader) throw new Error('No response body');
+
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let currentEventData = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            if (!line.trim()) {
+              if (currentEventData) {
+                try {
+                  // Remove trailing newline
+                  const data = currentEventData.endsWith('\n')
+                    ? currentEventData.slice(0, -1)
+                    : currentEventData;
+                  const newMessage = JSON.parse(data) as Message;
+                  handleMessages([newMessage]);
+                } catch (err) {
+                  console.error('ChatMessageParseError', err);
+                }
+                currentEventData = '';
+              }
+              continue;
+            }
+
+            const colonIndex = line.indexOf(':');
+            if (colonIndex === 0) continue; // Comment
+
+            const field = colonIndex < 0 ? line : line.slice(0, colonIndex);
+            const value = colonIndex < 0 ? '' : line.slice(colonIndex + 1).replace(/^\s/, '');
+
+            if (field === 'id') {
+              lastEventIdRef.current = value;
+            } else if (field === 'data') {
+              currentEventData += value + '\n';
+            } else if (field === 'event') {
+              if (value === 'connected') {
+                setStatus('connected');
+              }
+            }
+          }
+        }
+      } catch (err) {
+        if (abortController.signal.aborted) return;
+
+        console.error('SSE Connection Error', err);
+        setStatus('connecting');
+
+        // Retry after a delay
+        retryTimeout = setTimeout(startSSE, 3000);
+      }
     };
-
-    eventSource.addEventListener('connected', () => {
-      setStatus('connected');
-    });
 
     const handleMessages = (newMessages: Message[]) => {
       setMessages((prev) => {
-        // Use a local set for deduplication to keep the updater pure.
-        // Side-effects like updating a ref inside setMessages can cause
-        // messages to be dropped in React 18 Strict Mode.
         const existingIds = new Set(prev.map((m) => m.id));
         const filtered = newMessages.filter((m) => m && m.id && !existingIds.has(m.id));
 
@@ -95,31 +174,11 @@ export const useChatSession = ({ streamKey, enabled, displayName }: UseChatSessi
       });
     };
 
-    eventSource.addEventListener('message', (event) => {
-      try {
-        const newMessage = JSON.parse(event.data) as Message;
-        handleMessages([newMessage]);
-      } catch (err) {
-        console.error('ChatMessageParseError', err);
-      }
-    });
-
-    eventSource.onerror = (err) => {
-      console.error('Connection lost. Re-authenticating...', err);
-      eventSource.close();
-      // Trigger reconnection by resetting session and potentially retrying
-      setSessionId(null);
-      // Optional: Add a small delay or just let the user effect handle it
-      // Since we need to re-fetch /connect, we need to trigger the first effect.
-      // We can do this by forcing a dependency update.
-      setRetryCount((prev) => prev + 1);
-    };
+    startSSE();
 
     return () => {
-      eventSource.close();
-      eventSourceRef.current = null;
-      // Reset messages when session changes or disabled
-      setMessages([]);
+      abortController.abort();
+      clearTimeout(retryTimeout);
     };
   }, [sessionId, enabled]);
 
