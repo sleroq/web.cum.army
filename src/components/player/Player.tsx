@@ -169,6 +169,7 @@ const Player = (props: PlayerProps) => {
                 e.stopPropagation();
                 onToggleChat();
               }}
+              onDoubleClick={(e) => e.stopPropagation()}
               className={`p-2 rounded-full backdrop-blur-md text-foreground border border-foreground/10 shadow-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60 ${
                 isChatOpen ? 'bg-brand text-white' : 'bg-surface/60 hover:bg-surface/80'
               }`}
@@ -192,6 +193,7 @@ const Player = (props: PlayerProps) => {
                 e.stopPropagation();
                 onClose?.();
               }}
+              onDoubleClick={(e) => e.stopPropagation()}
               className="p-2 rounded-full bg-surface/60 hover:bg-surface/80 backdrop-blur-md text-foreground border border-foreground/10 shadow-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
               aria-label="Close stream"
             >
@@ -204,6 +206,7 @@ const Player = (props: PlayerProps) => {
         <div className="absolute bottom-0 w-full flex z-20">
           <div
             onClick={(e) => e.stopPropagation()}
+            onDoubleClick={(e) => e.stopPropagation()}
             className={`bg-surface/60 backdrop-blur-md transition-all duration-500 ${
               hasSignal && !videoOverlayVisible
                 ? 'opacity-0 pointer-events-none'
@@ -270,6 +273,7 @@ const Player = (props: PlayerProps) => {
                 e.stopPropagation();
                 handlePlayButtonClick();
               }}
+              onDoubleClick={(e) => e.stopPropagation()}
               className={
                 `pointer-events-auto bg-surface/60 hover:bg-surface/70 backdrop-blur-md transition-opacity duration-500 ${
                   hasSignal && !videoOverlayVisible ? 'opacity-0' : 'opacity-100'
