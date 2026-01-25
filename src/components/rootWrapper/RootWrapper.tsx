@@ -1,12 +1,12 @@
 import { Link, Outlet } from 'react-router-dom';
-import React from 'react';
+import React, { memo } from 'react';
 import { Cog6ToothIcon } from '@heroicons/react/24/solid';
 import { useSettings } from '../../providers/SettingsContext';
 import SettingsModal from '../shared/SettingsModal';
 import { SITE_NAME } from '../../config/site';
 import { useCinemaMode } from '../../providers/CinemaModeContext';
 
-const RootWrapper = () => {
+const RootWrapper = memo(() => {
   const { setSettingsOpen } = useSettings();
   const { cinemaMode } = useCinemaMode();
 
@@ -61,6 +61,8 @@ const RootWrapper = () => {
       )}
     </div>
   );
-};
+});
+
+RootWrapper.displayName = 'RootWrapper';
 
 export default RootWrapper;

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, memo } from 'react';
 import {
   ArrowsPointingOutIcon,
   PauseIcon,
@@ -31,7 +31,7 @@ interface PlayerProps {
   onToggleChat?: () => void;
 }
 
-const Player = (props: PlayerProps) => {
+const Player = memo((props: PlayerProps) => {
   const { cinemaMode, toggleCinemaMode } = useCinemaMode();
   const { pauseOnClick } = useSettings();
 
@@ -324,6 +324,8 @@ const Player = (props: PlayerProps) => {
       />
     </div>
   );
-};
+});
+
+Player.displayName = 'Player';
 
 export default Player;

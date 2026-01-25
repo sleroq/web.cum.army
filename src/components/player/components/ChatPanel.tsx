@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, memo } from 'react';
 import { ChatBubbleLeftRightIcon, PaperAirplaneIcon, UserIcon } from '@heroicons/react/20/solid';
-import { useChatSession } from '../../../hooks/useChatSession';
+import { useChatSession, Message, ChatStatus } from '../../../hooks/useChatSession';
 import ModalTextInput from '../../shared/ModalTextInput';
 
 interface ChatPanelProps {
@@ -18,12 +18,97 @@ const getUsernameColor = (username: string) => {
   return `hsl(${h}, 80%, 75%)`;
 };
 
-const ChatPanel = ({ streamKey, variant = 'sidebar', isOpen }: ChatPanelProps) => {
+const ChatMessage = memo(({ message }: { message: Message }) => (
+  <div className="flex flex-col">
+    <div className="flex items-baseline gap-2">
+      <span
+        className="text-xs font-bold truncate min-w-0"
+        style={{ color: getUsernameColor(message.displayName) }}
+      >
+        {message.displayName}
+      </span>
+      <span className="text-[10px] text-muted shrink-0">
+        {new Date(message.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+      </span>
+    </div>
+    <p className="text-sm text-foreground wrap-break-word">{message.text}</p>
+  </div>
+));
+
+ChatMessage.displayName = 'ChatMessage';
+
+interface ChatComposerProps {
+  status: ChatStatus;
+  displayName: string;
+  isSending: boolean;
+  onSend: (text: string) => Promise<void>;
+  onOpenNameModal: () => void;
+}
+
+const ChatComposer = memo(
+  ({ status, displayName, isSending, onSend, onOpenNameModal }: ChatComposerProps) => {
+    const [inputText, setInputText] = useState('');
+
+    const handleSend = async (e?: React.FormEvent) => {
+      e?.preventDefault();
+      if (!inputText.trim() || isSending) return;
+
+      if (!displayName) {
+        onOpenNameModal();
+        return;
+      }
+
+      await onSend(inputText.trim());
+      setInputText('');
+    };
+
+    return (
+      <form
+        onSubmit={handleSend}
+        className="p-3 bg-foreground/5 border-t border-border flex gap-2 shrink-0"
+      >
+        <div className="relative flex-1">
+          <input
+            type="text"
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            placeholder={displayName ? 'Send a message...' : 'Set name to chat'}
+            maxLength={2000}
+            className="w-full bg-input border border-border rounded-lg pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand/50 placeholder:text-muted"
+          />
+          {inputText.length > 1800 && (
+            <span className="absolute right-10 bottom-full mb-1 text-[10px] text-muted bg-surface px-1 rounded border border-border">
+              {inputText.length}/2000
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={onOpenNameModal}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted hover:text-brand transition-colors"
+            title="Change display name"
+          >
+            <UserIcon className="size-4" />
+          </button>
+        </div>
+        <button
+          type="submit"
+          disabled={!inputText.trim() || isSending || status !== 'connected'}
+          className="p-2 bg-brand hover:bg-brand-hover disabled:bg-muted/20 disabled:text-muted text-white rounded-lg transition-colors shrink-0"
+        >
+          <PaperAirplaneIcon className="size-4" />
+        </button>
+      </form>
+    );
+  }
+);
+
+ChatComposer.displayName = 'ChatComposer';
+
+const ChatPanel = memo(({ streamKey, variant = 'sidebar', isOpen }: ChatPanelProps) => {
   const [displayName, setDisplayName] = useState<string>(() => {
     return localStorage.getItem('chatDisplayName') || '';
   });
   const [isNameModalOpen, setIsNameModalOpen] = useState(false);
-  const [inputText, setInputText] = useState('');
   const [isSending, setIsSending] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -51,19 +136,10 @@ const ChatPanel = ({ streamKey, variant = 'sidebar', isOpen }: ChatPanelProps) =
     lastMessageCountRef.current = messages.length;
   }, [messages]);
 
-  const handleSend = async (e?: React.FormEvent) => {
-    e?.preventDefault();
-    if (!inputText.trim() || isSending) return;
-
-    if (!displayName) {
-      setIsNameModalOpen(true);
-      return;
-    }
-
+  const handleSend = async (text: string) => {
     setIsSending(true);
     try {
-      await sendMessage(inputText.trim());
-      setInputText('');
+      await sendMessage(text);
     } catch {
       // Error handled by hook/console
     } finally {
@@ -131,62 +207,23 @@ const ChatPanel = ({ streamKey, variant = 'sidebar', isOpen }: ChatPanelProps) =
           )}
           {error && <p className="text-center text-red-500 text-xs mt-4">{error}</p>}
           {messages.map((m) => (
-            <div key={m.id} className="flex flex-col">
-              <div className="flex items-baseline gap-2">
-                <span
-                  className="text-xs font-bold truncate min-w-0"
-                  style={{ color: getUsernameColor(m.displayName) }}
-                >
-                  {m.displayName}
-                </span>
-                <span className="text-[10px] text-muted shrink-0">
-                  {new Date(m.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </span>
-              </div>
-              <p className="text-sm text-foreground wrap-break-word">{m.text}</p>
-            </div>
+            <ChatMessage key={m.id} message={m} />
           ))}
         </div>
 
         {/* Composer */}
-        <form
-          onSubmit={handleSend}
-          className="p-3 bg-foreground/5 border-t border-border flex gap-2 shrink-0"
-        >
-          <div className="relative flex-1">
-            <input
-              type="text"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              placeholder={displayName ? 'Send a message...' : 'Set name to chat'}
-              maxLength={2000}
-              className="w-full bg-input border border-border rounded-lg pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand/50 placeholder:text-muted"
-            />
-            {inputText.length > 1800 && (
-              <span className="absolute right-10 bottom-full mb-1 text-[10px] text-muted bg-surface px-1 rounded border border-border">
-                {inputText.length}/2000
-              </span>
-            )}
-            <button
-              type="button"
-              onClick={() => setIsNameModalOpen(true)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted hover:text-brand transition-colors"
-              title="Change display name"
-            >
-              <UserIcon className="size-4" />
-            </button>
-          </div>
-          <button
-            type="submit"
-            disabled={!inputText.trim() || isSending || status !== 'connected'}
-            className="p-2 bg-brand hover:bg-brand-hover disabled:bg-muted/20 disabled:text-muted text-white rounded-lg transition-colors shrink-0"
-          >
-            <PaperAirplaneIcon className="size-4" />
-          </button>
-        </form>
+        <ChatComposer
+          status={status}
+          displayName={displayName}
+          isSending={isSending}
+          onSend={handleSend}
+          onOpenNameModal={() => setIsNameModalOpen(true)}
+        />
       </div>
     </>
   );
-};
+});
+
+ChatPanel.displayName = 'ChatPanel';
 
 export default ChatPanel;
