@@ -97,9 +97,7 @@ export const useChatSession = ({ streamKey, enabled, displayName }: UseChatSessi
 
     eventSource.addEventListener('message', (event) => {
       try {
-        const rawMessage = JSON.parse(event.data) as Message | { message: Message };
-        // Handle both flat Message and nested { message: Message } formats
-        const newMessage = 'message' in rawMessage ? rawMessage.message : rawMessage;
+        const newMessage = JSON.parse(event.data) as Message;
         handleMessages([newMessage]);
       } catch (err) {
         console.error('ChatMessageParseError', err);
