@@ -25,10 +25,13 @@ export const useChatSession = ({ streamKey, enabled, displayName }: UseChatSessi
 
   const lastEventIdRef = useRef<string | null>(null);
 
-  // Reset messages only when streamKey changes
+  // Reset state when streamKey changes
   useEffect(() => {
     setMessages([]);
     lastEventIdRef.current = null;
+    setSessionId(null);
+    setStatus('disconnected');
+    setError(null);
   }, [streamKey]);
 
   // 1. Connect to get Session ID
@@ -36,6 +39,13 @@ export const useChatSession = ({ streamKey, enabled, displayName }: UseChatSessi
     if (!enabled || !streamKey) {
       setSessionId(null);
       setStatus('disconnected');
+      setError(null);
+      return;
+    }
+
+    // If we already have a session or are currently connecting/in error state, skip
+    // This prevents infinite loops and multiple parallel requests
+    if (sessionId || status === 'connecting' || status === 'error') {
       return;
     }
 
@@ -64,7 +74,7 @@ export const useChatSession = ({ streamKey, enabled, displayName }: UseChatSessi
     };
 
     connect();
-  }, [streamKey, enabled]);
+  }, [streamKey, enabled, sessionId, status]);
 
   // 2. Subscribe to SSE via fetch (to support Last-Event-ID header)
   useEffect(() => {
@@ -194,6 +204,9 @@ export const useChatSession = ({ streamKey, enabled, displayName }: UseChatSessi
         });
 
         if (!response.ok) {
+          if (response.status === 401 || response.status === 404) {
+            setSessionId(null);
+          }
           const errorData = await response.json().catch(() => ({}));
           throw new Error(errorData.message || `Failed to send message: ${response.status}`);
         }
