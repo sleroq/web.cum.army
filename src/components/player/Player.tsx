@@ -53,6 +53,7 @@ const Player = (props: PlayerProps) => {
     connectFailed,
     currentLayer,
     setCurrentLayer,
+    isReconnecting,
   } = useWebRTCPlayer({ videoRef, streamKey });
 
   const { videoOverlayVisible, registerOverlayContainer } = useOverlayVisibility();
@@ -307,9 +308,9 @@ const Player = (props: PlayerProps) => {
             {props.streamKey} is not currently streaming
           </h2>
         )}
-        {videoLayers.length > 0 && !hasSignal && (
+        {((videoLayers.length > 0 && !hasSignal) || isReconnecting) && (
           <h2 className="absolute animate-pulse w-full top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 font-light leading-tight text-4xl text-center">
-            Loading video
+            {isReconnecting ? 'Reconnecting...' : 'Loading video'}
           </h2>
         )}
       </div>

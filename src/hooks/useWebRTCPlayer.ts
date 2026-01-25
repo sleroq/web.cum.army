@@ -18,11 +18,14 @@ export const useWebRTCPlayer = ({ videoRef, streamKey }: UseWebRTCPlayerProps) =
   const [droppedFrames, setDroppedFrames] = useState<number>(0);
   const [connectFailed, setConnectFailed] = useState<boolean>(false);
   const [currentLayer, setCurrentLayer] = useState<string>('disabled');
+  const [reconnectTrigger, setReconnectTrigger] = useState<number>(0);
+  const [isReconnecting, setIsReconnecting] = useState<boolean>(false);
 
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
   const attachedStreamIdRef = useRef<string | null>(null);
   const hasSignalRef = useRef<boolean>(false);
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevStatsRef = useRef<{
     jitterBufferDelay: number;
     jitterBufferEmittedCount: number;
@@ -156,6 +159,26 @@ export const useWebRTCPlayer = ({ videoRef, streamKey }: UseWebRTCPlayerProps) =
 
     peerConnectionRef.current = new RTCPeerConnection(getRtcConfiguration());
 
+    const triggerReconnect = (delay = 3000) => {
+      if (reconnectTimeoutRef.current) return;
+      setIsReconnecting(true);
+      setHasSignal(false);
+      reconnectTimeoutRef.current = setTimeout(() => {
+        reconnectTimeoutRef.current = null;
+        setReconnectTrigger((prev) => prev + 1);
+      }, delay);
+    };
+
+    peerConnectionRef.current.onconnectionstatechange = () => {
+      const state = peerConnectionRef.current?.connectionState;
+      if (state === 'failed' || state === 'disconnected') {
+        console.error('WebRTC_ConnectionState', state);
+        triggerReconnect();
+      } else if (state === 'connected') {
+        setIsReconnecting(false);
+      }
+    };
+
     peerConnectionRef.current.oniceconnectionstatechange = () => {
       const state = peerConnectionRef.current?.iceConnectionState;
       if (!state) {
@@ -164,6 +187,7 @@ export const useWebRTCPlayer = ({ videoRef, streamKey }: UseWebRTCPlayerProps) =
 
       if (state === 'failed' || state === 'disconnected') {
         console.error('WebRTC_ICEConnectionState', state);
+        triggerReconnect();
       }
     };
 
@@ -270,6 +294,7 @@ export const useWebRTCPlayer = ({ videoRef, streamKey }: UseWebRTCPlayerProps) =
         });
       } catch (err) {
         console.error('PeerConnectionError', err);
+        triggerReconnect(5000);
       }
     };
 
@@ -277,6 +302,10 @@ export const useWebRTCPlayer = ({ videoRef, streamKey }: UseWebRTCPlayerProps) =
 
     return () => {
       cancelled = true;
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
       eventSourceRef.current?.close();
       eventSourceRef.current = null;
 
@@ -284,7 +313,7 @@ export const useWebRTCPlayer = ({ videoRef, streamKey }: UseWebRTCPlayerProps) =
         videoElement.removeEventListener('playing', setHasSignalHandler);
       }
     };
-  }, [apiPath, streamKey, setHasSignalHandler, videoRef]);
+  }, [apiPath, streamKey, setHasSignalHandler, videoRef, reconnectTrigger]);
 
   return {
     videoLayers,
@@ -297,5 +326,6 @@ export const useWebRTCPlayer = ({ videoRef, streamKey }: UseWebRTCPlayerProps) =
     connectFailed,
     currentLayer,
     setCurrentLayer,
+    isReconnecting,
   };
 };
