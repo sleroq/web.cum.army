@@ -4,15 +4,15 @@ This is a fork of the web player for [broadcast-box](https://github.com/glimesh/
 
 ## Features unique to this fork
 
-- **Theme Support**: Includes multiple built-in themes (Dark, Light, Ocean, Forest) and supports custom theme configuration.
-- **System Theme Sync**: Automatically follows your device's light/dark mode preferences.
-- **Improved Player UI**: A cleaner, more modern interface built with Tailwind CSS v4.
+- **Integrated Chat**: Real-time chat system using Server-Sent Events (SSE) with message history and customizable display names.
+- **WebRTC Reconnection**: Automatically attempts to reconnect the video stream if the connection is lost or interrupted.
 - **Performance Indicators**: Real-time display of FPS, latency, and dropped frames directly in the player.
+- **Theme Support**: Multiple built-in themes and supports custom configuration. Automatically follows you device's theme.
+- **Improved Player UI**: A cleaner, modern interface built with Tailwind CSS v4.
 - **Consistent Design**: Unified UI components across the entire application.
 - **Stream Auto-play**: Streams attempt to play automatically by default, with smart retry logic and muted fallback if needed.
-- **Configurable STUN (ICE) Servers**: Configure ICE servers via env for better NAT traversal and improved Firefox/mobile playback reliability.
-- **Integrated Chat**: Real-time chat system using Server-Sent Events (SSE) with message history and customizable display names.
 - **Modern Tech Stack**: Updated to React 19, Vite 7, and Tailwind CSS v4. Includes React Compiler for better performance and strict linting/formatting rules.
+- **Configurable STUN (ICE) Servers**: Configure ICE servers via env for better NAT traversal and improved Firefox/mobile playback reliability.
 
 ## General Features
 
