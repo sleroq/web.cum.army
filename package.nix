@@ -1,8 +1,9 @@
-{ lib
-, buildNpmPackage
-, siteTitle ? "Broadcast Box"
-, apiPath ? ""
-, iceServers ? ""
+{
+  lib,
+  buildNpmPackage,
+  siteTitle ? "Broadcast Box",
+  apiPath ? "",
+  iceServers ? "",
 }:
 
 buildNpmPackage {
@@ -11,11 +12,15 @@ buildNpmPackage {
 
   src = lib.cleanSourceWith {
     src = ./.;
-    filter = path: type:
+    filter =
+      path: type:
       let
-        name = builtins.baseNameOf path;
+        name = baseNameOf path;
       in
-      !(builtins.elem name [ "node_modules" "build" ]);
+      !(builtins.elem name [
+        "node_modules"
+        "build"
+      ]);
   };
 
   npmBuildScript = "build";
