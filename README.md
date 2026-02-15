@@ -2,6 +2,8 @@
 
 This is a fork of the web player for [broadcast-box](https://github.com/glimesh/broadcast-box). It is designed to be a more modern, consistent, and feature-rich alternative to the original player.
 
+<img width="1431" height="869" alt="image" src="https://github.com/user-attachments/assets/f107cb2c-cde2-4ad9-92fc-6e4cfa492174" />
+
 ## Features unique to this fork
 
 - **Integrated Chat**: Real-time chat system using Server-Sent Events (SSE) with message history and customizable display names.
