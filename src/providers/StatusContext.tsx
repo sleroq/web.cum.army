@@ -1,23 +1,11 @@
 import React from 'react';
 
-export interface WhepSession {
-  id: string;
-  currentLayer: string;
-  sequenceNumber: number;
-  timestamp: number;
-  packetsWritten: number;
-}
-
 export interface StatusResult {
   streamKey: string;
-  whepSessions: WhepSession[];
-  videoStreams: VideoStream[];
-}
-
-export interface VideoStream {
-  rid: string;
-  packetsReceived: number;
-  lastKeyFrameSeen: string;
+  motd: string;
+  viewers: number;
+  isOnline: boolean;
+  streamStart: string;
 }
 
 export interface StatusProviderContextProps {

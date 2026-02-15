@@ -32,49 +32,21 @@ const Statistics = () => {
               </button>
             </div>
 
-            {/* VideoStreams */}
             <div className="mb-4 mt-4">
-              <h3 className="text-md font-semibold mb-2">🎥 Video Streams</h3>
+              <h3 className="text-md font-semibold mb-2">Status</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {status.videoStreams.map((stream, index) => (
-                  <div key={index} className="rounded-md p-3 border border-border">
-                    <div>
-                      <strong>RID:</strong> {stream.rid}
-                    </div>
-                    <div>
-                      <strong>Packets Received:</strong> {stream.packetsReceived}
-                    </div>
-                    <div>
-                      <strong>Last Key Frame:</strong> {stream.lastKeyFrameSeen}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* WhepStreams */}
-            <div>
-              <h3 className="text-md font-semibold mb-2">🧬 WHEP Sessions</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {status.whepSessions.map((session, index) => (
-                  <div key={index} className="rounded-md p-3 border border-border">
-                    <div>
-                      <strong>ID:</strong> {session.id}
-                    </div>
-                    <div>
-                      <strong>Layer:</strong> {session.currentLayer}
-                    </div>
-                    <div>
-                      <strong>Timestamp:</strong> {session.timestamp}
-                    </div>
-                    <div>
-                      <strong>Packets Written:</strong> {session.packetsWritten}
-                    </div>
-                    <div>
-                      <strong>Seq Num:</strong> {session.sequenceNumber}
-                    </div>
-                  </div>
-                ))}
+                <div className="rounded-md p-3 border border-border">
+                  <strong>Online:</strong> {status.isOnline ? 'Yes' : 'No'}
+                </div>
+                <div className="rounded-md p-3 border border-border">
+                  <strong>Viewers:</strong> {status.viewers}
+                </div>
+                <div className="rounded-md p-3 border border-border">
+                  <strong>Started:</strong> {new Date(status.streamStart).toLocaleString()}
+                </div>
+                <div className="rounded-md p-3 border border-border sm:col-span-2 md:col-span-3">
+                  <strong>MOTD:</strong> {status.motd}
+                </div>
               </div>
             </div>
           </div>

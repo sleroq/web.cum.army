@@ -14,10 +14,9 @@ const AvailableStreams = () => {
   const streams = useMemo(() => {
     if (!streamStatus) return undefined;
     return streamStatus
-      ?.filter((resultEntry) => resultEntry.videoStreams.length > 0)
+      .filter((resultEntry) => resultEntry.isOnline)
       .map((resultEntry: StatusResult) => ({
         streamKey: resultEntry.streamKey,
-        videoStreams: resultEntry.videoStreams,
       }));
   }, [streamStatus]);
 

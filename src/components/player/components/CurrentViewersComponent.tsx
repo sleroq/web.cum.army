@@ -21,7 +21,7 @@ const CurrentViewersComponent = ({ streamKey }: CurrentViewersComponentProps) =>
 
     const sessions = streamStatus.filter((session) => session.streamKey === streamKey);
 
-    return sessions.length !== 0 ? sessions[0].whepSessions.length : 0;
+    return sessions.length !== 0 ? sessions[0].viewers : 0;
   }, [streamKey, streamStatus]);
 
   return (
