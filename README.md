@@ -30,20 +30,19 @@ This is a fork of the web player for [broadcast-box](https://github.com/glimesh/
 
 ### Prerequisites
 
-- Node.js (v20 or newer recommended)
-- npm
+- Bun (v1.3.8 or newer recommended)
 
 ### Getting Started
 
 1. Clone the repository
 2. Install dependencies:
    ```bash
-   npm install
+   bun install
    ```
 3. Create a `.env` file based on `.env.example` and configure your `VITE_API_PATH`.
 4. Start the development server:
    ```bash
-   npm start
+   bun run start
    ```
 
 ### Building for Production
@@ -51,13 +50,13 @@ This is a fork of the web player for [broadcast-box](https://github.com/glimesh/
 To create a production build in the `build/` directory:
 
 ```bash
-npm run build
+bun run build
 ```
 
 ### Code Quality
 
-- **Linting**: `npm run lint` (Strict ESLint rules including React Compiler checks)
-- **Formatting**: `npm run format` (Prettier)
+- **Linting**: `bun run lint` (Strict ESLint rules including React Compiler checks)
+- **Formatting**: `bun run format` (Prettier)
 
 ## License
 

@@ -1,15 +1,14 @@
 {
+  bun,
+  bun2nix,
   lib,
-  buildNpmPackage,
+  stdenv,
   siteTitle ? "Broadcast Box",
   apiPath ? "",
   iceServers ? "",
 }:
 
-buildNpmPackage {
-  pname = "web-cum-army";
-  version = "0.1.0";
-
+let
   src = lib.cleanSourceWith {
     src = ./.;
     filter =
@@ -22,14 +21,29 @@ buildNpmPackage {
         "build"
       ]);
   };
+in
+stdenv.mkDerivation {
+  pname = "web-cum-army";
+  version = "0.1.0";
 
-  npmBuildScript = "build";
+  inherit src;
+
+  nativeBuildInputs = [
+    bun
+    bun2nix.hook
+  ];
+
+  bunDeps = bun2nix.fetchBunDeps {
+    bunNix = ./bun.nix;
+  };
+
+  buildPhase = ''
+    bun run build
+  '';
 
   VITE_SITE_TITLE = siteTitle;
   VITE_API_PATH = apiPath;
   VITE_ICE_SERVERS = iceServers;
-
-  npmDepsHash = "sha256-BxhPPftuPLwWbe5XY5OHFobYAn+v29Nn/WcnLuh7Tfo=";
 
   installPhase = ''
     runHook preInstall
